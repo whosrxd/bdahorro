@@ -1,57 +1,61 @@
-use dbahorro;
+CREATE DATABASE dbahorro;
+USE dbahorro;
 
 CREATE TABLE categorias (
-    id_categoria INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL
+    id_categoria INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE unidades (
-    id_unidad INT PRIMARY KEY AUTO_INCREMENT,
+    id_unidad INT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE proveedores (
-    id_proveedor INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
+    id_proveedor INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
     telefono CHAR(10),
     contacto VARCHAR(100)
 );
 
+-- Tabla clientes modificada (eliminado id_cliente redundante)
 CREATE TABLE clientes (
-    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    telefono CHAR(10),
-    direccion VARCHAR(150)
+    telefono CHAR(10) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    id_cliente INT UNIQUE,  -- Identificador de referencia para empleados
+    direccion VARCHAR(100),
+    correo VARCHAR(100)  -- Nuevo campo para correo electrónico
 );
 
 CREATE TABLE medicos (
-    id_medico INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
+    id_medico INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
     especialidad VARCHAR(100),
     telefono CHAR(10)
 );
 
+-- Recetas modificada para usar teléfono en vez de id_cliente
 CREATE TABLE recetas (
-    id_receta INT PRIMARY KEY AUTO_INCREMENT,
-    id_cliente INT NOT NULL,
+    id_receta INT PRIMARY KEY,
+    telefono_cliente CHAR(10) NOT NULL,
     id_medico INT NOT NULL,
     fecha DATE NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (telefono_cliente) REFERENCES clientes(telefono),
     FOREIGN KEY (id_medico) REFERENCES medicos(id_medico)
 );
 
 CREATE TABLE empleados (
-    id_empleado INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
+    id_empleado INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
     telefono CHAR(10),
-    direccion VARCHAR(150),
+    direccion VARCHAR(100),
     puesto VARCHAR(50),
     fecha_contratacion DATE
 );
 
 CREATE TABLE medicamentos (
     codigo CHAR(13) PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
     precio DECIMAL(10,2) NOT NULL,
     costo DECIMAL(10,2) NOT NULL,
     existencias INT NOT NULL,
@@ -94,32 +98,33 @@ CREATE TABLE ventas (
     id_venta INT PRIMARY KEY AUTO_INCREMENT,
     fecha DATE NOT NULL,
     importe DECIMAL(10,2) NOT NULL,
-    id_cliente INT NOT NULL,
+    telefono CHAR(10) NOT NULL,
     id_empleado INT NOT NULL,
     FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
-    FOREIGN KEY (id_cliente) REFERENCES clientes (id_cliente)
+    FOREIGN KEY (telefono) REFERENCES clientes(telefono)
 );
 
 CREATE TABLE detalle_ventas (
     id_venta INT,
     codigo CHAR(13),
     cantidad INT NOT NULL,
-    id_receta INT NOT NULL,
+    id_receta INT,  -- Cambiado a no obligatorio
     subtotal DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (id_venta, codigo),
     FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
-    FOREIGN KEY (codigo) REFERENCES medicamentos(codigo)
+    FOREIGN KEY (codigo) REFERENCES medicamentos(codigo),
     FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 );
 
+-- Consultas modificada para usar teléfono en vez de id_cliente
 CREATE TABLE consultas (
     id_consulta INT PRIMARY KEY AUTO_INCREMENT,
-    id_cliente INT NOT NULL,
+    telefono_cliente CHAR(10) NOT NULL,
     id_empleado INT NOT NULL,
     id_receta INT NOT NULL,
     fecha DATE NOT NULL,
-    motivo VARCHAR(255),
-    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    motivo VARCHAR(200),
+    FOREIGN KEY (telefono_cliente) REFERENCES clientes(telefono),
     FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
     FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 );
