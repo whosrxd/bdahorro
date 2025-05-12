@@ -312,7 +312,7 @@ def buscar_cliente():
 
     for item in items_clientes:
         valores = tabla_clientes.item(item, "values")
-        if termino not in valores[0].lower():  # ahora busca por ID
+        if termino not in valores[2].lower():  # ahora busca por ID
             tabla_clientes.detach(item)
         else:
             tabla_clientes.reattach(item, '', 'end')
@@ -330,9 +330,9 @@ frame_cliente.pack(expand = True)
 Label(frame_cliente, text = "Cliente", **label_titulo_config).grid(row = 0, column = 0, columnspan = 4, pady = 20)
 
 # ID Cliente
-Label(frame_cliente, text = "ID Cliente", **label_config).grid(row = 1, column = 0, sticky = "e", padx = 10, pady = 5)
+Label(frame_cliente, text = "ID Cliente", **label_config).grid(row = 3, column = 0, sticky = "e", padx = 10, pady = 5)
 entry_idcli = Entry(frame_cliente, **entry_config)
-entry_idcli.grid(row = 1, column = 1, padx = 10, pady = 5)
+entry_idcli.grid(row = 3, column = 1, padx = 10, pady = 5)
 
 # Nombre Cliente
 Label(frame_cliente, text = "Nombre", **label_config).grid(row = 2, column = 0, sticky = "e", padx = 10, pady = 5)
@@ -340,9 +340,9 @@ entry_nombrecli = Entry(frame_cliente, **entry_config)
 entry_nombrecli.grid(row = 2, column = 1, padx = 10, pady = 5)
 
 # Teléfono Cliente
-Label(frame_cliente, text = "Teléfono", **label_config).grid(row = 3, column = 0, sticky = "e", padx = 10, pady = 5)
+Label(frame_cliente, text = "Teléfono", **label_config).grid(row = 1, column = 0, sticky = "e", padx = 10, pady = 5)
 entry_telcli = Entry(frame_cliente, **entry_config)
-entry_telcli.grid(row = 3, column = 1, padx = 10, pady = 5)
+entry_telcli.grid(row = 1, column = 1, padx = 10, pady = 5)
 
 # Dirección Cliente
 Label(frame_cliente, text="Dirección", **label_config).grid(row = 1, column = 2, sticky = "e", padx = 10, pady = 5)
