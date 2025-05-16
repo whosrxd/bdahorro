@@ -128,3 +128,51 @@ CREATE TABLE consultas (
     FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
     FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 );
+
+-- Inserción de datos de ejemplo
+
+-- Categorías
+INSERT INTO categorias (id_categoria, nombre)
+VALUES
+(1, 'Medicamentos'),
+(2, 'Suplementos'),
+(3, 'Cuidado Personal'),
+(4, 'Higiene'),
+(5, 'Belleza');
+
+-- Clientes
+INSERT INTO clientes (id_cliente, nombre, direccion, correo, telefono)
+VALUES
+(1, 'Juan Pérez', 'Calle Norte No. 100', 'juanp@ahorro.com', '9611783521'),
+(2, 'María López', 'Avenida Central No. 48', 'marial@ahorro.com', '9611783522'),
+(3, 'Carlos Sánchez', 'Real del Bosque No. 5', 'carloss@ahorro.com', '9611783523');
+
+-- Empleados
+INSERT INTO empleados (id_empleado, nombre, telefono, direccion, puesto, fecha_contratacion)
+VALUES
+(1, 'Ana Martínez', '9611783524', 'Calle del Sol No. 20', 'Farmacéutica', '2022-01-15'),
+(2, 'Luis García', '9611783525', 'Avenida de la Paz No. 30', 'Gerente de Tienda', '2021-06-10'),
+(3, 'Patricia Torres', '9611783526', 'Calle de la Luna No. 15', 'Asistente de Ventas', '2023-03-01');
+
+-- Médicos
+INTERT INTO medicos (id_medico, nombre, especialidad, telefono)
+VALUES
+(1, 'Dr. Alberto Ruiz', 'Pediatra', '9611783530'),
+(2, 'Dra. Sofía Morales', 'Dermatología', '9611783531'),
+(3, 'Dr. Javier López', 'Cardiología', '9611783532');
+
+-- Proveedores
+INSERT INTO proveedores (id_proveedor, nombre, telefono, contacto)
+VALUES
+(1, 'Distribuidora Salud', '9611783527', 'Fernando Ruiz'),
+(2, 'Farmacéuticos Unidos', '9611783528', 'Laura Mendoza'),
+(3, 'Medicamentos y Más', '9611783529', 'Jorge Salazar');
+
+-- Unidades
+INSERT INTO unidades (id_unidad, nombre)
+VALUES
+(1, 'Pieza'),
+(2, 'Caja'),
+(3, 'Botella'),
+(4, 'Paquete'),
+(5, 'Sobre');
