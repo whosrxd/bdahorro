@@ -3,7 +3,7 @@ from tkinter.ttk import Treeview, Style
 import conexion
 import validaciones
 
-def medicos_app(contenido):
+def categorias_app(contenido):
     # — Conexión a BD —
     conn = conexion.conectar()
     cursor = conn.cursor()
@@ -12,8 +12,7 @@ def medicos_app(contenido):
     for widget in contenido.winfo_children():
         widget.destroy()
 
-    # CRUD
-    titulo = Label(contenido, text="Médicos", font=("Arial", 70, "bold"), bg="#FFFFFF", fg="#000000")
+    titulo = Label(contenido, text="Categorías", font=("Arial", 70, "bold"), fg="#000000", bg="#FFFFFF")
     titulo.pack(pady=(40, 20))
 
     # Función para agregar placeholder
@@ -59,8 +58,8 @@ def medicos_app(contenido):
             tbl.reattach(it, '', 'end')
         entry_busq.delete(0, "end")
         agregar_placeholder(entry_busq, "Buscar")
-        
-    # Frame de búsqueda y botones    
+
+    # === NUEVO: Frame para botón y búsqueda en la misma fila ===
     frm_botones_buscar = Frame(contenido, bg="#FFFFFF")
     frm_botones_buscar.pack(pady=10, fill="x", padx=80)
 
@@ -144,71 +143,54 @@ def medicos_app(contenido):
                     background="#f0f0f0",
                     foreground="black")
 
+    # Opcional: para que la selección no cambie mucho el fondo (puedes quitarlo si no quieres)
     style.map('Treeview',
             background=[('selected', '#3874f2')],
             foreground=[('selected', 'white')])
 
-    tbl = Treeview(frm_tabla, columns=("id", "nombre", "especialidad", "telefono"), show="headings")
+    tbl = Treeview(frm_tabla, columns=("id", "nombre"), show="headings")
     tbl.heading("id", text="ID Categoría")
     tbl.heading("nombre", text="Nombre")
-    tbl.heading("especialidad", text="Especialidad")
-    tbl.heading("telefono", text="Teléfono")
-    tbl.column("id", width=90, anchor="center")
-    tbl.column("nombre", width=180, anchor="center")
-    tbl.column("especialidad", width=180, anchor="center")
-    tbl.column("telefono", width=90, anchor="center")
+    tbl.column("id", width=200, anchor="center")
+    tbl.column("nombre", width=400, anchor="center")
     tbl.pack(fill=BOTH, expand=True)
     
     def refrescar():
         nonlocal items
         for row in tbl.get_children():
             tbl.delete(row)
-        cursor.execute("SELECT id_medico, nombre, especialidad, telefono FROM medicos")
+        cursor.execute("SELECT id_categoria, nombre FROM categorias")
         for r in cursor.fetchall():
             tbl.insert("", "end", values=r)
         items = tbl.get_children()
         
     refrescar()
     
-    def validar_campos(idm, nom, esp, tel):
-        if not validaciones.validar_id(idm):
+    def validar_campos(idc, nom):
+        if not validaciones.validar_id(idc):
             messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
             return False
         if not validaciones.validar_nombre(nom):
             messagebox.showerror("Error", validaciones.mostrar_mensaje_error("nombre"))
-            return False
-        if not validaciones.validar_nombre(esp):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("especialidad"))
-            return False
-        if not validaciones.validar_telefono(tel):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("telefono"))
             return False
         return True
 
     def agregar():
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=400)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
 
-        Label(modal_frame, text="Agregar médico", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Agregar categoría", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
         
-        Label(modal_frame, text="ID Médico", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="ID Categoría", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
         entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
         entry_id.pack(pady=5)
         entry_id.focus()
         
-        Label(modal_frame, text="Nombre de médico", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Nombre de categoría", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
         entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
         entry_nombre.pack(pady=5)
-        
-        Label(modal_frame, text="Especialidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_especialidad = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_especialidad.pack(pady=5)
-        
-        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_telefono.pack(pady=5)
-        
+
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
         lbl_error.pack()
 
@@ -216,19 +198,16 @@ def medicos_app(contenido):
         def guardar():
             idc = entry_id.get().strip()
             nom = entry_nombre.get().strip()
-            esp = entry_especialidad.get().strip()
-            tel = entry_telefono.get().strip()
-
             
-            if not validar_campos(idc, nom, esp, tel): 
+            if not validar_campos(idc, nom): 
                 lbl_error.config(text="Error en los datos ingresados.")
                 return
             
             try:
-                cursor.execute("INSERT INTO medicos (id_medico, nombre, especialidad, telefono) VALUES (%s, %s, %s, %s)", (idc, nom, esp, tel))
+                cursor.execute("INSERT INTO categorias(id_categoria, nombre) VALUES(%s, %s)", (idc, nom))
                 conn.commit()
                 refrescar()
-                messagebox.showinfo("Éxito", "Médico agregado correctamente")
+                messagebox.showinfo("Éxito", "Categoría agregada correctamente")
                 modal_frame.destroy()
             except Exception as e:
                 lbl_error.config(text=f"Error: {str(e)}")
@@ -282,59 +261,42 @@ def medicos_app(contenido):
             return
         
         # Obtener valores de la fila seleccionada
-        id_medico, nombre_medico, especialidad_medico, telefono_medico = tbl.item(sel[0], "values")
+        id_categoria, nombre_categoria = tbl.item(sel[0], "values")
 
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=400)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
 
-        Label(modal_frame, text="Modificar médico", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        Label(modal_frame, text="ID Médico", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Modificar categoría", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="ID Categoría", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
 
         entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#FFFFFF", bg="#000000")
         entry_id.pack(pady=5)
-        entry_id.insert(0, id_medico)
+        entry_id.insert(0, id_categoria)
         entry_id.config(state='readonly')  # ID es solo lectura
 
-        Label(modal_frame, text="Nombre de médico", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Nombre de categoría", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
         entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
         entry_nombre.pack(pady=5)
-        entry_nombre.insert(0, nombre_medico)
+        entry_nombre.insert(0, nombre_categoria)
         entry_nombre.focus()
-        
-        Label(modal_frame, text="Especialidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_especialidad = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_especialidad.pack(pady=5)
-        entry_especialidad.insert(0, especialidad_medico)
-        
-        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_telefono.pack(pady=5)
-        entry_telefono.insert(0, telefono_medico)
-        entry_telefono.focus()
-        
+
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
         lbl_error.pack()
 
         # Función para guardar los cambios
         def guardar_cambios():
             nuevo_nombre = entry_nombre.get().strip()
-            nueva_especialidad = entry_especialidad.get().strip()
-            nuevo_telefono = entry_telefono.get().strip()
-
             if nuevo_nombre == "":
                 lbl_error.config(text="El nombre no puede estar vacío")
                 return
             
             try:
-                cursor.execute(
-                    "UPDATE medicos SET nombre=%s, especialidad=%s, telefono=%s WHERE id_medico=%s",
-                    (nuevo_nombre, nueva_especialidad, nuevo_telefono, id_medico)
-                )
+                cursor.execute("UPDATE categorias SET nombre=%s WHERE id_categoria=%s", (nuevo_nombre, id_categoria))
                 conn.commit()
                 refrescar()
                 modal_frame.destroy()
-                messagebox.showinfo("Éxito", "Médico modificado correctamente")
+                messagebox.showinfo("Éxito", "Categoría modificada correctamente")
             except Exception as e:
                 lbl_error.config(text=f"Error: {str(e)}")
 
@@ -386,7 +348,7 @@ def medicos_app(contenido):
         if not sel:
             messagebox.showwarning("Selección", "Selecciona primero una fila.")
             return
-        idm = tbl.item(sel[0], "values")[0]
+        idc = tbl.item(sel[0], "values")[0]
 
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
@@ -396,12 +358,12 @@ def medicos_app(contenido):
         inner_frame = Frame(modal_frame, bg="#FFFFFF")
         inner_frame.pack(expand=True)
 
-        Label(inner_frame, text="Eliminar Médico", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
-        Label(inner_frame, text=f"¿Deseas eliminar Médico {idm}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(inner_frame, text="Eliminar Categoría", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
+        Label(inner_frame, text=f"¿Deseas eliminar Categoría {idc}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
 
-        # Función que realmente elimina el registro
+        # Función que confirma la eliminacion del registro
         def confirmar_eliminacion():
-            cursor.execute("DELETE FROM medicos WHERE id_medico=%s", (idm,))
+            cursor.execute("DELETE FROM categorias WHERE id_categoria=%s", (idc,))
             conn.commit()
             refrescar()
             modal_frame.destroy()  # Cierra el modal después de eliminar
@@ -410,7 +372,7 @@ def medicos_app(contenido):
         btn_frame = Frame(inner_frame, bg="#FFFFFF")
         btn_frame.pack(pady=15)
 
-        # Botones para confirmar o cancelar
+        # Botones para confirmar y cancelar
         btn_eliminar = Button(
             btn_frame, 
             text="Eliminar", 

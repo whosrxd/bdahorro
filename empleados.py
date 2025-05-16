@@ -1,219 +1,487 @@
-# empleados.py
-from tkinter import Tk, Label, Entry, Frame, BOTH, messagebox
-from tkinter.ttk import Button, Notebook, Style, Treeview, Combobox
-from datetime import datetime
+from tkinter import Frame, Label, Button, NW, BOTH, messagebox, Entry
+from tkinter.ttk import Treeview, Style
 import conexion
 import validaciones
+from datetime import datetime
 
-def empleados_app():
+def empleados_app(contenido):
     # — Conexión a BD —
-    conn   = conexion.conectar()
+    conn = conexion.conectar()
     cursor = conn.cursor()
+    
+    # Limpiar el frame
+    for widget in contenido.winfo_children():
+        widget.destroy()
+    
+    # CRUD
+    titulo = Label(contenido, text="Empleados", font=("Arial", 70, "bold"), bg="#FFFFFF", fg="#000000")
+    titulo.pack(pady=(40, 20))
 
-    # — Ventana principal fullscreen —
-    ventana = Tk()
-    ventana.title("Gestión de Empleados")
-    ventana.attributes('-fullscreen', True)
-    ventana.configure(bg="#E3F2FD")
+    # Función para agregar placeholder
+    def agregar_placeholder(entry, texto_placeholder):
+        def poner_placeholder():
+            if not entry.get():
+                entry.insert(0, texto_placeholder)
+                entry.config(fg='grey')
 
-    # — Notebook por si agregas más módulos —
-    notebook = Notebook(ventana)
-    notebook.pack(fill=BOTH, expand=True)
+        def quitar_placeholder():
+            if entry.get() == texto_placeholder:
+                entry.delete(0, 'end')
+                entry.config(fg='#4A90E2')  # azul clarito al escribir
 
-    # — Pestaña Empleados —
-    pestaña = Frame(notebook, bg="#E3F2FD")
-    notebook.add(pestaña, text="Empleados")
+        # Poner placeholder inicial
+        poner_placeholder()
 
-    # — Estilos globales —
-    style = Style()
-    style.theme_use("default")
-    style.configure("BotonAzul.TButton",
-                    background="#64B5F6", foreground="black",
-                    font=("Arial",12,"bold"), padding=(10,8))
-    style.map("BotonAzul.TButton", background=[("active", "#42A5F5")])
-    style.configure("Treeview",
-                    background="white", fieldbackground="white",
-                    foreground="black", rowheight=30,
-                    font=("Arial",12))
-    style.configure("Treeview.Heading",
-                    background="#90CAF9", foreground="black",
-                    font=("Arial",12,"bold"))
+        def on_focus_in(event):
+            quitar_placeholder()
 
-    # — Configuración de Labels y Entries —
-    label_cfg  = {"bg": "#E3F2FD", "fg": "black", "font": ("Arial",14)}
-    title_cfg  = {"bg": "#E3F2FD", "fg": "black", "font": ("Arial",18,"bold")}
-    entry_cfg  = {"bg": "#BBDEFB", "fg": "black", "relief": "flat", "bd": 0,
-                  "font": ("Arial",14), "width": 20}
+        def on_focus_out(event):
+            poner_placeholder()
 
-    # — Frame del formulario —
-    frm = Frame(pestaña, bg="#E3F2FD")
-    frm.pack(pady=30)
+        entry.bind('<FocusIn>', on_focus_in)
+        entry.bind('<FocusOut>', on_focus_out)
 
-    # Título
-    Label(frm, text="Empleado", **title_cfg).grid(row=0, column=0, columnspan=4, pady=(0,20))
-
-    # Entrys y Combobox
-    entry_id    = Entry(frm, **entry_cfg)
-    entry_nom   = Entry(frm, **entry_cfg)
-    entry_tel   = Entry(frm, **entry_cfg)
-    entry_dir   = Entry(frm, **entry_cfg)
-    combo_puesto = Combobox(frm, values=[
-        "Cajero", "Farmacéutico", "Auxiliar", "Supervisor", "Administrativo"
-    ], state="readonly", font=("Arial",14), width=18)
-    entry_fecha = Entry(frm, **entry_cfg)
-
-    # Etiquetas + grid
-    Label(frm, text="ID Empleado", **label_cfg).grid(row=1, column=0, sticky="e", padx=10, pady=5)
-    entry_id.grid(row=1, column=1, padx=10, pady=5)
-    Label(frm, text="Nombre", **label_cfg).grid(row=1, column=2, sticky="e", padx=10, pady=5)
-    entry_nom.grid(row=1, column=3, padx=10, pady=5)
-
-    Label(frm, text="Teléfono", **label_cfg).grid(row=2, column=0, sticky="e", padx=10, pady=5)
-    entry_tel.grid(row=2, column=1, padx=10, pady=5)
-    Label(frm, text="Dirección", **label_cfg).grid(row=2, column=2, sticky="e", padx=10, pady=5)
-    entry_dir.grid(row=2, column=3, padx=10, pady=5)
-
-    Label(frm, text="Puesto", **label_cfg).grid(row=3, column=0, sticky="e", padx=10, pady=5)
-    combo_puesto.grid(row=3, column=1, padx=10, pady=5)
-    Label(frm, text="Fecha Contratación", **label_cfg).grid(row=3, column=2, sticky="e", padx=10, pady=5)
-    entry_fecha.grid(row=3, column=3, padx=10, pady=5)
-
-    # — Frame Botones CRUD —
-    frm_btn = Frame(pestaña, bg="#E3F2FD")
-    frm_btn.pack(pady=15)
-
-    # — Validación de campos —
-    def validar_campos(i,n,t,d,p,f):
-        if not validaciones.validar_id(i):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id")); return False
-        if not validaciones.validar_nombre(n):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("nombre")); return False
-        if not validaciones.validar_telefono(t):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("telefono")); return False
-        if not validaciones.validar_puesto(p):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("puesto")); return False
-        if not validaciones.validar_fecha(f):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("fecha")); return False
-        return True
-
-    # — Operaciones CRUD —
-    def refrescar():
-        nonlocal items
-        for r in tbl.get_children(): tbl.delete(r)
-        cursor.execute(
-            "SELECT id_empleado, nombre, telefono, direccion, puesto, fecha_contratacion "
-            "FROM empleados"
-        )
-        for rec in cursor.fetchall():
-            tbl.insert("", "end", values=rec)
-        items = tbl.get_children()
-
-    def agregar():
-        i = entry_id.get().strip(); n = entry_nom.get().strip()
-        t = entry_tel.get().strip(); d = entry_dir.get().strip()
-        p = combo_puesto.get().strip(); f = entry_fecha.get().strip()
-        if not validar_campos(i,n,t,d,p,f): return
-        # Convertir fecha a ISO
-        fecha_sql = datetime.strptime(f, "%d/%m/%Y").strftime("%Y-%m-%d")
-        cursor.execute(
-            "INSERT INTO empleados(id_empleado, nombre, telefono, direccion, puesto, fecha_contratacion) "
-            "VALUES(%s,%s,%s,%s,%s,%s)",
-            (i, n, t, d, p, fecha_sql)
-        )
-        conn.commit(); refrescar()
-
-    def modificar():
-        sel = tbl.selection()
-        if not sel:
-            messagebox.showwarning("Selección", "Selecciona una fila primero."); return
-        i = entry_id.get().strip(); n = entry_nom.get().strip()
-        t = entry_tel.get().strip(); d = entry_dir.get().strip()
-        p = combo_puesto.get().strip(); f = entry_fecha.get().strip()
-        if not validar_campos(i,n,t,d,p,f): return
-        fecha_sql = datetime.strptime(f, "%d/%m/%Y").strftime("%Y-%m-%d")
-        cursor.execute(
-            "UPDATE empleados SET nombre=%s, telefono=%s, direccion=%s, puesto=%s, fecha_contratacion=%s "
-            "WHERE id_empleado=%s",
-            (n, t, d, p, fecha_sql, i)
-        )
-        conn.commit(); refrescar()
-
-    def eliminar():
-        sel = tbl.selection()
-        if not sel:
-            messagebox.showwarning("Selección", "Selecciona una fila primero."); return
-        i = tbl.item(sel[0], "values")[0]
-        if messagebox.askyesno("Confirmar", f"Eliminar empleado {i}?"):
-            cursor.execute("DELETE FROM empleados WHERE id_empleado=%s", (i,))
-            conn.commit(); refrescar()
-
-    # — Botones CRUD —
-    Button(frm_btn, text="Agregar",  style="BotonAzul.TButton", command=agregar).pack(side="left", padx=10)
-    Button(frm_btn, text="Modificar",style="BotonAzul.TButton", command=modificar).pack(side="left", padx=10)
-    Button(frm_btn, text="Eliminar", style="BotonAzul.TButton", command=eliminar).pack(side="left", padx=10)
-
-    # — Frame de Búsqueda —
-    frm_search = Frame(pestaña, bg="#E3F2FD")
-    frm_search.pack(pady=10)
-    Label(frm_search, text="Buscar:", **label_cfg).pack(side="left", padx=5)
-    entry_busq = Entry(frm_search, **entry_cfg)
-    entry_busq.pack(side="left", padx=5)
-
-    def mostrar_todos(event=None):
-        for it in items: tbl.reattach(it, '', 'end')
-        entry_busq.delete(0,"end")
-
+    # Función de búsqueda mejorada
     def buscar(event=None):
-        término = entry_busq.get().lower().strip()
-        if not término: return mostrar_todos()
+        texto = entry_busq.get().strip().lower()
+        if texto == "" or texto == "buscar":
+            mostrar_todos()
+            return
         for it in items:
             vals = tbl.item(it, "values")
-            if (término not in vals[0].lower()
-                and término not in vals[1].lower()
-                and término not in vals[2].lower()
-                and término not in vals[4].lower()):
+            if texto not in str(vals[0]).lower() and texto not in str(vals[1]).lower():
                 tbl.detach(it)
             else:
                 tbl.reattach(it, '', 'end')
 
+    # Función para mostrar todos los registros (quita filtros)
+    def mostrar_todos(event=None):
+        for it in items:
+            tbl.reattach(it, '', 'end')
+        entry_busq.delete(0, "end")
+        agregar_placeholder(entry_busq, "Buscar")
+
+    # Frame de búsqueda y botones
+    frm_botones_buscar = Frame(contenido, bg="#FFFFFF")
+    frm_botones_buscar.pack(pady=10, fill="x", padx=80)
+
+    btn_agregar = Button(
+        frm_botones_buscar,
+        text="Agregar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_agregar.pack(side="left", padx=5)  # Espacio entre botones
+
+    btn_modificar = Button(
+        frm_botones_buscar,
+        text="Modificar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_modificar.pack(side="left", padx=5)
+
+    btn_eliminar = Button(
+        frm_botones_buscar,
+        text="Eliminar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_eliminar.pack(side="left", padx=5)
+
+    entry_busq = Entry(
+        frm_botones_buscar, 
+        width=30, 
+        bg="white", 
+        fg="#4A90E2",
+        highlightbackground="#4A90E2",
+        highlightcolor="#4A90E2",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    entry_busq.pack(side="right", padx=5)
+    agregar_placeholder(entry_busq, "Buscar")
     entry_busq.bind("<KeyRelease>", buscar)
 
-    # — Tabla de Empleados —
-    tbl = Treeview(pestaña,
-                   columns=("id","nombre","telefono","direccion","puesto","fecha"), show="headings")
-    tbl.pack(fill=BOTH, expand=True, padx=80, pady=(0,40))
-    for col,w,txt in [
-        ("id",100,"ID Empleado"),
-        ("nombre",200,"Nombre"),
-        ("telefono",150,"Teléfono"),
-        ("direccion",200,"Dirección"),
-        ("puesto",150,"Puesto"),
-        ("fecha",150,"Fecha")
-    ]:
-        tbl.heading(col, text=txt)
-        tbl.column(col, width=w, anchor="center")
+    # Frame de la tabla
+    frm_tabla = Frame(contenido)
+    frm_tabla.pack(fill=BOTH, expand=True, padx=80, pady=(0,40))
 
-    # — Carga de selección en formulario —
-    def on_select(e):
-        sel = tbl.selection()
-        if sel:
-            v = tbl.item(sel[0], "values")
-            entry_id.delete(0,"end"); entry_id.insert(0,v[0])
-            entry_nom.delete(0,"end"); entry_nom.insert(0,v[1])
-            entry_tel.delete(0,"end"); entry_tel.insert(0,v[2])
-            entry_dir.delete(0,"end"); entry_dir.insert(0,v[3])
-            combo_puesto.set(v[4])
-            # convertir yyyy-mm-dd a dd/mm/YYYY
-            fecha_fmt = datetime.strptime(v[5], "%Y-%m-%d").strftime("%d/%m/%Y")
-            entry_fecha.delete(0,"end"); entry_fecha.insert(0, fecha_fmt)
+    style = Style()
+    style.theme_use("default")  # Usar tema "default" para poder personalizar mejor
 
-    tbl.bind("<<TreeviewSelect>>", on_select)
+    # Configurar colores para Treeview (tabla)
+    style.configure("Treeview",
+                    background="white",
+                    foreground="black",
+                    fieldbackground="white",
+                    rowheight=25,
+                    font=("Arial", 11))
 
-    # — Carga inicial —
-    items = []
+    style.configure("Treeview.Heading",
+                    font=("Arial", 12, "bold"),
+                    background="#f0f0f0",
+                    foreground="black")
+    
+    style.map('Treeview',
+            background=[('selected', '#3874f2')],
+            foreground=[('selected', 'white')])
+
+    tbl = Treeview(frm_tabla, columns=("id", "nombre", "telefono", "direccion", "puesto", "fechadecontratacion"), show="headings")
+    tbl.heading("id", text="ID Categoría")
+    tbl.heading("nombre", text="Nombre")
+    tbl.heading("telefono", text="Teléfono")
+    tbl.heading("direccion", text="Dirección")
+    tbl.heading("puesto", text="Puesto")
+    tbl.heading("fechadecontratacion", text="Fecha de Contratación")
+    tbl.column("id", width=90, anchor="center")
+    tbl.column("nombre", width=180, anchor="center")
+    tbl.column("telefono", width=90, anchor="center")
+    tbl.column("direccion", width=150, anchor="center")
+    tbl.column("puesto", width=120, anchor="center")
+    tbl.column("fechadecontratacion", width=100, anchor="center")
+    tbl.pack(fill=BOTH, expand=True)
+    
+    def refrescar():
+        nonlocal items
+        for row in tbl.get_children():
+            tbl.delete(row)
+        cursor.execute("SELECT id_empleado, nombre, telefono, direccion, puesto, fecha_contratacion FROM empleados")
+        for r in cursor.fetchall():
+            tbl.insert("", "end", values=r)
+        items = tbl.get_children()
+        
     refrescar()
+    
+    def validar_campos(ide, nom, tel, dir, pue, fec):
+        if not validaciones.validar_id(ide):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
+            return False
+        if not validaciones.validar_nombre(nom):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("nombre"))
+            return False
+        if not validaciones.validar_telefono(tel):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("telefono"))
+            return False
+        if not validaciones.validar_direccion(dir):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("direccion"))
+            return False
+        if not validaciones.validar_puesto(pue):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("puesto"))
+            return False
+        if not validaciones.validar_fecha(fec):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("fecha"))
+            return False
+        return True
 
-    ventana.mainloop()
+    def agregar():
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=500)
 
-if __name__ == "__main__":
-    empleados_app()
+        Label(modal_frame, text="Agregar empleado", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        
+        Label(modal_frame, text="ID Empleado", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_id.pack(pady=5)
+        entry_id.focus()
+        
+        Label(modal_frame, text="Nombre de empleado", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_nombre.pack(pady=5)
+        
+        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_telefono.pack(pady=5)
+        
+        Label(modal_frame, text="Dirección", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_direccion = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_direccion.pack(pady=5)
+        
+        Label(modal_frame, text="Puesto", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_puesto = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_puesto.pack(pady=5)
+        
+        Label(modal_frame, text="Fecha de contratación", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_fecha = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_fecha.pack(pady=5)
+
+        lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
+        lbl_error.pack()
+
+        # Función para guardar
+        def guardar():
+            idc = entry_id.get().strip()
+            nom = entry_nombre.get().strip()
+            tel = entry_telefono.get().strip()
+            dir = entry_direccion.get().strip()
+            pue = entry_puesto.get().strip()
+            fec = entry_fecha.get().strip()
+            
+            if not validar_campos(idc, nom, tel, dir, pue, fec): 
+                lbl_error.config(text="Error en los datos ingresados.")
+                return
+            
+            # Convertir fecha a ISO
+            fecha_sql = datetime.strptime(fec, "%d/%m/%Y").strftime("%Y-%m-%d")
+            
+            try:
+                cursor.execute("INSERT INTO empleados (id_empleado, nombre, telefono, direccion, puesto, fecha_contratacion) VALUES (%s, %s, %s, %s, %s, %s)", (idc, nom, tel, dir, pue, fecha_sql))
+                conn.commit()
+                refrescar()
+                messagebox.showinfo("Éxito", "Empleado agregado correctamente")
+                modal_frame.destroy()
+            except Exception as e:
+                lbl_error.config(text=f"Error: {str(e)}")
+            
+        # Función para cancelar
+        def cancelar():
+            modal_frame.destroy()
+
+        # Botones del modal
+        btn_frame = Frame(modal_frame, bg="white")
+        btn_frame.pack(pady=10)
+
+        btn_guardar = Button(
+            btn_frame, 
+            text="Guardar", 
+            command=guardar, 
+            bg="#5D85AC", 
+            fg="#5D85AC", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_guardar.pack(side="left", padx=5)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=cancelar, 
+            bg="red", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="left", padx=5)
+
+    btn_agregar.config(command=agregar)
+    
+    def modificar():
+        sel = tbl.selection()
+        if not sel:
+            messagebox.showwarning("Selección", "Selecciona primero una fila.")
+            return
+        
+        # Obtener valores de la fila seleccionada
+        id_empleado, nombre_empleado, telefono_empleado, direccion_empleado, puesto_empleado, fecha_empleado = tbl.item(sel[0], "values")
+
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=510)
+
+        Label(modal_frame, text="Modificar empleado", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="ID Empleado", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+
+        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#FFFFFF", bg="#000000")
+        entry_id.pack(pady=5)
+        entry_id.insert(0, id_empleado)
+        entry_id.config(state='readonly')  # ID es solo lectura
+
+        Label(modal_frame, text="Nombre de empleado", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_nombre.pack(pady=5)
+        entry_nombre.insert(0, nombre_empleado)
+        entry_nombre.focus()
+        
+        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_telefono.pack(pady=5)
+        entry_telefono.insert(0, telefono_empleado)
+        entry_telefono.focus()
+        
+        Label(modal_frame, text="Dirección", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_direccion = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_direccion.pack(pady=5)
+        entry_direccion.insert(0, direccion_empleado)
+        entry_direccion.focus()
+        
+        Label(modal_frame, text="Puesto", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_puesto = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_puesto.pack(pady=5)
+        entry_puesto.insert(0, puesto_empleado)
+        entry_puesto.focus()
+        
+        Label(modal_frame, text="Fecha de contratación", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_fecha = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_fecha.pack(pady=5)
+        entry_fecha.insert(0, fecha_empleado)
+        entry_fecha.focus()
+
+        lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
+        lbl_error.pack()
+
+        # Función para guardar los cambios
+        def guardar_cambios():
+            nuevo_nombre = entry_nombre.get().strip()
+            nuevo_telefono = entry_telefono.get().strip()
+            nueva_direccion = entry_direccion.get().strip()
+            nuevo_puesto = entry_puesto.get().strip()
+            nueva_fecha = entry_fecha.get().strip()
+            
+            if nuevo_nombre == "":
+                lbl_error.config(text="El nombre no puede estar vacío")
+                return
+            
+            try:
+                cursor.execute(
+                    "UPDATE empleados SET nombre=%s, telefono=%s, direccion=%s, puesto=%s, fecha_contratacion=%s WHERE id_empleado=%s",
+                    (nuevo_nombre, nuevo_telefono, nueva_direccion, nuevo_puesto, nueva_fecha, id_empleado)
+                )
+                conn.commit()
+                refrescar()
+                modal_frame.destroy()
+                messagebox.showinfo("Éxito", "Empleado modificado correctamente")
+            except Exception as e:
+                lbl_error.config(text=f"Error: {str(e)}")
+
+        # Función para cancelar la modificación
+        def cancelar():
+            modal_frame.destroy()
+
+        # Botones del modal
+        btn_frame = Frame(modal_frame, bg="white")
+        btn_frame.pack(pady=10)
+
+        btn_guardar = Button(
+            btn_frame, 
+            text="Guardar", 
+            command=guardar_cambios, 
+            bg="white", 
+            fg="#5D85AC", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_guardar.pack(side="left", padx=5)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=cancelar, 
+            bg="white", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="left", padx=5)
+    
+    # Función para modificar
+    btn_modificar.config(command=modificar)
+    
+    def eliminar():
+        sel = tbl.selection()
+        if not sel:
+            messagebox.showwarning("Selección", "Selecciona primero una fila.")
+            return
+        idc = tbl.item(sel[0], "values")[0]
+
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
+
+        # Contenedor interno para centrar el contenido
+        inner_frame = Frame(modal_frame, bg="#FFFFFF")
+        inner_frame.pack(expand=True)
+
+        Label(inner_frame, text="Eliminar Empleado", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
+        Label(inner_frame, text=f"¿Deseas eliminar Empleado {idc}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+
+        # Función que realmente elimina el registro
+        def confirmar_eliminacion():
+            cursor.execute("DELETE FROM empleados WHERE id_empleado=%s", (idc,))
+            conn.commit()
+            refrescar()
+            modal_frame.destroy()  # Cierra el modal después de eliminar
+
+        # Contenedor para los botones centrados
+        btn_frame = Frame(inner_frame, bg="#FFFFFF")
+        btn_frame.pack(pady=15)
+
+        # Botones para confirmar o cancelar
+        btn_eliminar = Button(
+            btn_frame, 
+            text="Eliminar", 
+            command=confirmar_eliminacion,  
+            bg="white", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_eliminar.pack(side="left", padx=10)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=modal_frame.destroy, 
+            bg="white", 
+            fg="black", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="right", padx=10)
+            
+    btn_eliminar.config(command=eliminar)
+
+    # Guardar IDs de items para control de búsqueda
+    items = tbl.get_children()

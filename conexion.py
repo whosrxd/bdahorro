@@ -9,7 +9,7 @@ def conectar():
             database="dbahorro",
             port="3306"
         )
-        print("Conexión exitosa a MySQL")
+
         return conexion
     except mysql.connector.Error as e:
         print(f"Error al conectar a MySQL: {e}")

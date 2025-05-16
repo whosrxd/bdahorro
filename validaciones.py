@@ -28,16 +28,14 @@ def validar_fecha(fecha):
     except ValueError:
         return False
     
+def validar_direccion(direccion):
+    return bool(direccion.strip())  # Verifica que no esté vacío
+    
 def validar_especialidad(especialidad):
-    return re.fullmatch(r"[A-Za-zÁÉÍÓÚáéíóúñÑ ]+", especialidad) is not None
-    
-    especialidades_validas = [
-        "Medicina General", "Pediatría", "Ginecología", "Odontología",
-        "Dermatología", "Cardiología", "Oftalmología", "Psiquiatría",
-        "Traumatología", "Cirugía General"
-    ]
-    return especialidad in especialidades_validas
-    
+    return re.fullmatch(r"[A-Za-zÁÉÍÓÚáéíóúñÑ ]+", especialidad) is not None   
+
+def validar_contacto(contacto):
+    return bool(contacto.strip())  # Verifica que no esté vacío 
 
 def mostrar_mensaje_error(tipo):
     mensajes = {
@@ -48,5 +46,7 @@ def mostrar_mensaje_error(tipo):
         "puesto": "El campo Puesto solo debe contener letras.",
         "fecha": "El campo Fecha debe ser una fecha válida y tener el formato dd/mm/aaaa.",
         "especialidad": "El campo Especialidad solo debe contener letras.",
+        "direccion": "El campo Dirección debe estar lleno",
+        "contacto": "El campo Contacto no puede estar vacío."
     }
     return mensajes.get(tipo, "Dato inválido.")

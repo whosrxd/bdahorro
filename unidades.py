@@ -1,167 +1,410 @@
-# unidades.py
-from tkinter import Tk, Label, Entry, Frame, BOTH, messagebox
-from tkinter.ttk import Button, Notebook, Style, Treeview
+from tkinter import Frame, Label, Button, NW, BOTH, messagebox, Entry
+from tkinter.ttk import Treeview, Style
 import conexion
 import validaciones
 
-def unidades_app():
+def unidades_app(contenido):
     # — Conexión a BD —
-    conn   = conexion.conectar()
+    conn = conexion.conectar()
     cursor = conn.cursor()
+    
+    # Limpiar el frame
+    for widget in contenido.winfo_children():
+        widget.destroy()
 
-    # — Ventana principal fullscreen —
-    ventana = Tk()
-    ventana.title("Gestión de Unidades de Medida")
-    ventana.attributes('-fullscreen', True)
-    ventana.configure(bg="#E3F2FD")
+    titulo = Label(contenido, text="Unidades", font=("Arial", 70, "bold"), bg="#FFFFFF", fg="#000000")
+    titulo.pack(pady=(40, 20))
 
-    # — Notebook por si quieres añadir más pestañas luego —
-    notebook = Notebook(ventana)
-    notebook.pack(fill=BOTH, expand=True)
+    # Función para agregar placeholder
+    def agregar_placeholder(entry, texto_placeholder):
+        def poner_placeholder():
+            if not entry.get():
+                entry.insert(0, texto_placeholder)
+                entry.config(fg='grey')
 
-    # — Pestaña Unidades —
-    pestaña = Frame(notebook, bg="#E3F2FD")
-    notebook.add(pestaña, text="Unidades")
+        def quitar_placeholder():
+            if entry.get() == texto_placeholder:
+                entry.delete(0, 'end')
+                entry.config(fg='#4A90E2')  # azul clarito al escribir
 
-    # — Estilos globales —
-    style = Style()
-    style.theme_use("default")
-    style.configure("BotonAzul.TButton",
-                    background="#64B5F6", foreground="black",
-                    font=("Arial",12,"bold"), padding=(10,8))
-    style.map("BotonAzul.TButton", background=[("active", "#42A5F5")])
-    style.configure("Treeview",
-                    background="white", fieldbackground="white",
-                    foreground="black", rowheight=30,
-                    font=("Arial",12))
-    style.configure("Treeview.Heading",
-                    background="#90CAF9", foreground="black",
-                    font=("Arial",12,"bold"))
+        # Poner placeholder inicial
+        poner_placeholder()
 
-    # — Configuración de Labels y Entries —
-    label_cfg = {"bg": "#E3F2FD", "fg": "black", "font": ("Arial",14)}
-    title_cfg = {"bg": "#E3F2FD", "fg": "black", "font": ("Arial",18,"bold")}
-    entry_cfg = {"bg": "#BBDEFB", "fg": "black",
-                 "relief": "flat", "bd": 0,
-                 "font": ("Arial",14), "width": 20}
+        def on_focus_in(event):
+            quitar_placeholder()
 
-    # — Frame del formulario —
-    frm = Frame(pestaña, bg="#E3F2FD")
-    frm.pack(pady=30)
+        def on_focus_out(event):
+            poner_placeholder()
 
-    # Título
-    Label(frm, text="Unidad de Medida", **title_cfg).grid(row=0, column=0, columnspan=2, pady=(0,20))
+        entry.bind('<FocusIn>', on_focus_in)
+        entry.bind('<FocusOut>', on_focus_out)
 
-    # Entrys
-    entry_id   = Entry(frm, **entry_cfg)
-    entry_nom  = Entry(frm, **entry_cfg)
-
-    # Etiquetas + grid
-    Label(frm, text="ID Unidad", **label_cfg).grid(row=1, column=0, sticky="e", padx=10, pady=5)
-    entry_id.grid(row=1, column=1, padx=10, pady=5)
-    Label(frm, text="Nombre", **label_cfg).grid(row=2, column=0, sticky="e", padx=10, pady=5)
-    entry_nom.grid(row=2, column=1, padx=10, pady=5)
-
-    # — Frame Botones CRUD —
-    frm_btn = Frame(pestaña, bg="#E3F2FD")
-    frm_btn.pack(pady=15)
-
-    # — Validación de campos —
-    def validar_campos(i, n):
-        if not validaciones.validar_id(i):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id")); return False
-        if not validaciones.validar_nombre(n):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("nombre")); return False
-        return True
-
-    # — Operaciones CRUD —
-    def refrescar():
-        nonlocal items
-        for r in tbl.get_children():
-            tbl.delete(r)
-        cursor.execute("SELECT id_unidad, nombre FROM unidades")
-        for rec in cursor.fetchall():
-            tbl.insert("", "end", values=rec)
-        items = tbl.get_children()
-
-    def agregar():
-        i = entry_id.get().strip(); n = entry_nom.get().strip()
-        if not validar_campos(i, n): return
-        cursor.execute("INSERT INTO unidades(id_unidad, nombre) VALUES(%s,%s)", (i, n))
-        conn.commit(); refrescar()
-
-    def modificar():
-        sel = tbl.selection()
-        if not sel:
-            messagebox.showwarning("Selección", "Selecciona una fila primero."); return
-        i = entry_id.get().strip(); n = entry_nom.get().strip()
-        if not validar_campos(i, n): return
-        cursor.execute("UPDATE unidades SET nombre=%s WHERE id_unidad=%s", (n, i))
-        conn.commit(); refrescar()
-
-    def eliminar():
-        sel = tbl.selection()
-        if not sel:
-            messagebox.showwarning("Selección", "Selecciona una fila primero."); return
-        i = tbl.item(sel[0], "values")[0]
-        if messagebox.askyesno("Confirmar", f"Eliminar unidad {i}?"):
-            cursor.execute("DELETE FROM unidades WHERE id_unidad=%s", (i,))
-            conn.commit(); refrescar()
-
-    # — Botones CRUD —
-    Button(frm_btn, text="Agregar",  style="BotonAzul.TButton", command=agregar).pack(side="left", padx=10)
-    Button(frm_btn, text="Modificar",style="BotonAzul.TButton", command=modificar).pack(side="left", padx=10)
-    Button(frm_btn, text="Eliminar", style="BotonAzul.TButton", command=eliminar).pack(side="left", padx=10)
-
-    # — Frame de Búsqueda —
-    frm_search = Frame(pestaña, bg="#E3F2FD")
-    frm_search.pack(pady=10)
-    Label(frm_search, text="Buscar:", **label_cfg).pack(side="left", padx=5)
-    entry_busq = Entry(frm_search, **entry_cfg)
-    entry_busq.pack(side="left", padx=5)
-
-    def mostrar_todos(event=None):
-        for it in items: tbl.reattach(it, '', 'end')
-        entry_busq.delete(0, "end")
-
+    # Función de búsqueda mejorada
     def buscar(event=None):
-        término = entry_busq.get().lower().strip()
-        if not término: return mostrar_todos()
+        texto = entry_busq.get().strip().lower()
+        if texto == "" or texto == "buscar":
+            mostrar_todos()
+            return
         for it in items:
             vals = tbl.item(it, "values")
-            if término not in vals[0].lower() and término not in vals[1].lower():
+            if texto not in str(vals[0]).lower() and texto not in str(vals[1]).lower():
                 tbl.detach(it)
             else:
                 tbl.reattach(it, '', 'end')
 
+    # Función para mostrar todos los registros (quita filtros)
+    def mostrar_todos(event=None):
+        for it in items:
+            tbl.reattach(it, '', 'end')
+        entry_busq.delete(0, "end")
+        agregar_placeholder(entry_busq, "Buscar")
+
+    # Frame de búsqueda y botones
+    frm_botones_buscar = Frame(contenido, bg="#FFFFFF")
+    frm_botones_buscar.pack(pady=10, fill="x", padx=80)
+
+    btn_agregar = Button(
+        frm_botones_buscar,
+        text="Agregar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_agregar.pack(side="left", padx=5)  # Espacio entre botones
+
+    btn_modificar = Button(
+        frm_botones_buscar,
+        text="Modificar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_modificar.pack(side="left", padx=5)
+
+    btn_eliminar = Button(
+        frm_botones_buscar,
+        text="Eliminar",
+        bg="#5D85AC",
+        fg="#5D85AC",
+        activebackground="#5D85AC",
+        activeforeground="white",
+        highlightbackground="white",
+        highlightcolor="white",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    btn_eliminar.pack(side="left", padx=5)
+
+    entry_busq = Entry(
+        frm_botones_buscar, 
+        width=30, 
+        bg="white", 
+        fg="#4A90E2",
+        highlightbackground="#4A90E2",
+        highlightcolor="#4A90E2",
+        highlightthickness=2,
+        bd=0,
+        relief="flat",
+    )
+    entry_busq.pack(side="right", padx=5)
+    agregar_placeholder(entry_busq, "Buscar")
     entry_busq.bind("<KeyRelease>", buscar)
 
-    # — Tabla de Unidades —
-    tbl = Treeview(pestaña,
-                   columns=("id","nombre"), show="headings")
-    tbl.pack(fill=BOTH, expand=True, padx=80, pady=(0,40))
-    for col, w, txt in [
-        ("id",120,"ID Unidad"),
-        ("nombre",400,"Nombre")
-    ]:
-        tbl.heading(col, text=txt)
-        tbl.column(col, width=w, anchor="center")
+    # Frame de la tabla
+    frm_tabla = Frame(contenido)
+    frm_tabla.pack(fill=BOTH, expand=True, padx=80, pady=(0,40))
 
-    # — Carga de selección en formulario —
-    def on_select(e):
-        sel = tbl.selection()
-        if sel:
-            v = tbl.item(sel[0], "values")
-            entry_id.delete(0, "end");  entry_id.insert(0, v[0])
-            entry_nom.delete(0, "end"); entry_nom.insert(0, v[1])
+    style = Style()
+    style.theme_use("default")  # Usar tema "default" para poder personalizar mejor
 
-    tbl.bind("<<TreeviewSelect>>", on_select)
+    # Configurar colores para Treeview (tabla)
+    style.configure("Treeview",
+                    background="white",
+                    foreground="black",
+                    fieldbackground="white",
+                    rowheight=25,
+                    font=("Arial", 11))
 
-    # — Carga inicial —
-    items = []
+    style.configure("Treeview.Heading",
+                    font=("Arial", 12, "bold"),
+                    background="#f0f0f0",
+                    foreground="black")
+
+    style.map('Treeview',
+            background=[('selected', '#3874f2')],
+            foreground=[('selected', 'white')])
+
+    tbl = Treeview(frm_tabla, columns=("id", "nombre"), show="headings")
+    tbl.heading("id", text="ID Unidad")
+    tbl.heading("nombre", text="Nombre")
+    tbl.column("id", width=200, anchor="center")
+    tbl.column("nombre", width=400, anchor="center")
+    tbl.pack(fill=BOTH, expand=True)
+    
+    def refrescar():
+        nonlocal items
+        for row in tbl.get_children():
+            tbl.delete(row)
+        cursor.execute("SELECT id_unidad, nombre FROM unidades")
+        for r in cursor.fetchall():
+            tbl.insert("", "end", values=r)
+        items = tbl.get_children()
+        
     refrescar()
+    
+    def validar_campos(idc, nom):
+        if not validaciones.validar_id(idc):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
+            return False
+        if not validaciones.validar_nombre(nom):
+            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("nombre"))
+            return False
+        return True
 
-    ventana.mainloop()
+    def agregar():
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
 
-if __name__ == "__main__":
-    unidades_app()
+        Label(modal_frame, text="Agregar unidad", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        
+        Label(modal_frame, text="ID Unidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_id.pack(pady=5)
+        entry_id.focus()
+        
+        Label(modal_frame, text="Nombre de unidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_nombre.pack(pady=5)
+
+        lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
+        lbl_error.pack()
+
+        # Función para guardar
+        def guardar():
+            idu = entry_id.get().strip()
+            nom = entry_nombre.get().strip()
+            
+            if not validar_campos(idu, nom): 
+                lbl_error.config(text="Error en los datos ingresados.")
+                return
+            
+            try:
+                cursor.execute("INSERT INTO unidades(id_unidad, nombre) VALUES(%s, %s)", (idu, nom))
+                conn.commit()
+                refrescar()
+                messagebox.showinfo("Éxito", "Unidad agregada correctamente")
+                modal_frame.destroy()
+            except Exception as e:
+                lbl_error.config(text=f"Error: {str(e)}")
+            
+        # Función para cancelar
+        def cancelar():
+            modal_frame.destroy()
+
+        # Botones del modal
+        btn_frame = Frame(modal_frame, bg="white")
+        btn_frame.pack(pady=10)
+
+        btn_guardar = Button(
+            btn_frame, 
+            text="Guardar", 
+            command=guardar, 
+            bg="#5D85AC", 
+            fg="#5D85AC", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_guardar.pack(side="left", padx=5)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=cancelar, 
+            bg="red", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="left", padx=5)
+
+    btn_agregar.config(command=agregar)
+    
+    def modificar():
+        sel = tbl.selection()
+        if not sel:
+            messagebox.showwarning("Selección", "Selecciona primero una fila.")
+            return
+        
+        # Obtener valores de la fila seleccionada
+        id_unidad, nombre_unidad = tbl.item(sel[0], "values")
+
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
+
+        Label(modal_frame, text="Modificar unidad", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="ID Unidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+
+        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#FFFFFF", bg="#000000")
+        entry_id.pack(pady=5)
+        entry_id.insert(0, id_unidad)
+        entry_id.config(state='readonly')  # ID es solo lectura
+
+        Label(modal_frame, text="Nombre de unidad", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_nombre.pack(pady=5)
+        entry_nombre.insert(0, nombre_unidad)
+        entry_nombre.focus()
+
+        lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
+        lbl_error.pack()
+
+        # Función para guardar los cambios
+        def guardar_cambios():
+            nuevo_nombre = entry_nombre.get().strip()
+            if nuevo_nombre == "":
+                lbl_error.config(text="El nombre no puede estar vacío")
+                return
+            
+            try:
+                cursor.execute("UPDATE unidades SET nombre=%s WHERE id_unidad=%s", (nuevo_nombre, id_unidad))
+                conn.commit()
+                refrescar()
+                modal_frame.destroy()
+                messagebox.showinfo("Éxito", "Unidad modificada correctamente")
+            except Exception as e:
+                lbl_error.config(text=f"Error: {str(e)}")
+
+        # Función para cancelar la modificación
+        def cancelar():
+            modal_frame.destroy()
+
+        # Botones del modal
+        btn_frame = Frame(modal_frame, bg="white")
+        btn_frame.pack(pady=10)
+
+        btn_guardar = Button(
+            btn_frame, 
+            text="Guardar", 
+            command=guardar_cambios, 
+            bg="white", 
+            fg="#5D85AC", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_guardar.pack(side="left", padx=5)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=cancelar, 
+            bg="white", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="left", padx=5)
+    
+    # Función para modificar
+    btn_modificar.config(command=modificar)
+    
+    def eliminar():
+        sel = tbl.selection()
+        if not sel:
+            messagebox.showwarning("Selección", "Selecciona primero una fila.")
+            return
+        idu = tbl.item(sel[0], "values")[0]
+
+        # Crear un frame modal (capa encima)
+        modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=250)
+
+        # Contenedor interno para centrar el contenido
+        inner_frame = Frame(modal_frame, bg="#FFFFFF")
+        inner_frame.pack(expand=True)
+
+        Label(inner_frame, text="Eliminar Unidad", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
+        Label(inner_frame, text=f"¿Deseas eliminar Unidad {idu}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+
+        # Función que realmente elimina el registro
+        def confirmar_eliminacion():
+            cursor.execute("DELETE FROM unidades WHERE id_unidad=%s", (idu,))
+            conn.commit()
+            refrescar()
+            modal_frame.destroy()  # Cierra el modal después de eliminar
+
+        # Contenedor para los botones centrados
+        btn_frame = Frame(inner_frame, bg="#FFFFFF")
+        btn_frame.pack(pady=15)
+
+        # Botones para confirmar o cancelar
+        btn_eliminar = Button(
+            btn_frame, 
+            text="Eliminar", 
+            command=confirmar_eliminacion,  
+            bg="white", 
+            fg="red", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_eliminar.pack(side="left", padx=10)
+
+        btn_cancelar = Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=modal_frame.destroy, 
+            bg="white", 
+            fg="black", 
+            width=12, 
+            activeforeground="white",
+            highlightbackground="white",
+            highlightcolor="#5D85AC",
+            highlightthickness=2,
+            bd=0,
+            relief="flat"
+        )
+        btn_cancelar.pack(side="right", padx=10)
+            
+    btn_eliminar.config(command=eliminar)
+
+    # Guardar IDs de items para control de búsqueda
+    items = tbl.get_children()
