@@ -193,33 +193,39 @@ def clientes_app(contenido):
     def agregar():
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=450)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=350)
 
-        Label(modal_frame, text="Agregar cliente", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Agregar Cliente", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
         
-        Label(modal_frame, text="ID Cliente", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_id.pack(pady=5)
+        # Contenedor con grid para organizar los entrys
+        form_frame = Frame(modal_frame, bg="#FFFFFF")
+        form_frame.pack(pady=10)
+        
+        # Lado izquierdo        
+        Label(form_frame, text="ID Cliente", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_id = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_id.grid(row=1, column=0, padx=10, pady=5)
         entry_id.focus()
         
-        Label(modal_frame, text="Nombre de cliente", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_nombre.pack(pady=5)
+        Label(form_frame, text="Nombre", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        entry_nombre = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_nombre.grid(row=3, column=0, padx=10, pady=5)
         
-        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_telefono.pack(pady=5)
+        Label(form_frame, text="Teléfono", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        entry_telefono = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_telefono.grid(row=5, column=0, padx=10, pady=5)
         
-        Label(modal_frame, text="Dirección", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_direccion = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_direccion.pack(pady=5)
-        
-        Label(modal_frame, text="Correo", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_correo = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_correo.pack(pady=5)
+        # Lado derecho
+        Label(form_frame, text="Dirección", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        entry_direccion = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_direccion.grid(row=1, column=1, padx=10, pady=5)
 
+        Label(form_frame, text="Correo", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        entry_correo = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_correo.grid(row=3, column=1, padx=10, pady=5)
+        
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
-        lbl_error.pack()
+        lbl_error.pack(pady=5)
 
         # Función para guardar
         def guardar():
@@ -295,42 +301,44 @@ def clientes_app(contenido):
 
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=350, height=450)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=350)
 
-        Label(modal_frame, text="Modificar cliente", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        Label(modal_frame, text="ID Cliente", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(modal_frame, text="Modificar Cliente", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        
+        # Frame interno con grid
+        grid_frame = Frame(modal_frame, bg="#FFFFFF")
+        grid_frame.pack(pady=5)
 
-        entry_id = Entry(modal_frame, font=("Arial", 12), width=20, fg="#FFFFFF", bg="#000000")
-        entry_id.pack(pady=5)
+        # Lado izquierdo        
+        Label(grid_frame, text="ID Cliente", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_id = Entry(grid_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#FFFFFF")
+        entry_id.grid(row=1, column=0, padx=10, pady=5)
         entry_id.insert(0, id_cliente)
-        entry_id.config(state='readonly')  # ID es solo lectura
-
-        Label(modal_frame, text="Nombre de cliente", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_nombre = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_nombre.pack(pady=5)
+        entry_id.config(state="readonly")
+        
+        Label(grid_frame, text="Nombre", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        entry_nombre = Entry(grid_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_nombre.grid(row=3, column=0, padx=10, pady=5)
         entry_nombre.insert(0, nombre_cliente)
-        entry_nombre.focus()
         
-        Label(modal_frame, text="Teléfono", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_telefono = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_telefono.pack(pady=5)
+        Label(grid_frame, text="Teléfono", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        entry_telefono = Entry(grid_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_telefono.grid(row=5, column=0, padx=10, pady=5)
         entry_telefono.insert(0, telefono_cliente)
-        entry_telefono.focus()
         
-        Label(modal_frame, text="Dirección", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_direccion = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_direccion.pack(pady=5)
+        # Lado derecho
+        Label(grid_frame, text="Dirección", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        entry_direccion = Entry(grid_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_direccion.grid(row=1, column=1, padx=10, pady=5)
         entry_direccion.insert(0, direccion_cliente)
-        entry_direccion.focus()
-        
-        Label(modal_frame, text="Correo", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
-        entry_correo = Entry(modal_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_correo.pack(pady=5)
-        entry_correo.insert(0, correo_cliente)
-        entry_correo.focus()
 
+        Label(grid_frame, text="Correo", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        entry_correo = Entry(grid_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_correo.grid(row=3, column=1, padx=10, pady=5)
+        entry_correo.insert(0, correo_cliente)
+        
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
-        lbl_error.pack()
+        lbl_error.pack(pady=5)
 
         # Función para guardar los cambios
         def guardar_cambios():

@@ -1,4 +1,3 @@
-# validaciones.py
 import re
 from datetime import datetime
 
@@ -10,6 +9,9 @@ def validar_puesto(puesto):
 
 def validar_id(id):
     return id.isdigit()
+
+def validar_codigo(codigo):
+    return codigo.isdigit()
 
 def validar_telefono(telefono):
     return telefono.isdigit() and len(telefono) == 10
@@ -37,6 +39,18 @@ def validar_especialidad(especialidad):
 def validar_contacto(contacto):
     return bool(contacto.strip())  # Verifica que no esté vacío 
 
+def validar_precio(precio):
+    return re.fullmatch(r"^\d+(\.\d{1,2})?$", precio) is not None  # Verifica que sea un número con hasta dos decimales
+
+def validar_costo(costo):
+    return re.fullmatch(r"^\d+(\.\d{1,2})?$", costo) is not None  # Verifica que sea un número con hasta dos decimales
+
+def validar_existencias(existencias):
+    return existencias.isdigit() and int(existencias) >= 0  # Verifica que sea un número entero no negativo
+
+def validar_importe(importe):
+    return re.fullmatch(r"^\d+(\.\d{1,2})?$", importe) is not None
+
 def mostrar_mensaje_error(tipo):
     mensajes = {
         "nombre": "El campo Nombre solo debe contener letras.",
@@ -47,6 +61,11 @@ def mostrar_mensaje_error(tipo):
         "fecha": "El campo Fecha debe ser una fecha válida y tener el formato dd/mm/aaaa.",
         "especialidad": "El campo Especialidad solo debe contener letras.",
         "direccion": "El campo Dirección debe estar lleno",
-        "contacto": "El campo Contacto no puede estar vacío."
+        "contacto": "El campo Contacto no puede estar vacío.",
+        "codigo": "El campo Código solo debe contener números.",
+        "precio": "El campo Precio debe ser un número con hasta dos decimales.",
+        "costo": "El campo Costo debe ser un número con hasta dos decimales.",
+        "existencias": "El campo Existencias debe ser un número entero.",
+        "importe": "El campo Importe debe ser un número con hasta dos decimales"
     }
     return mensajes.get(tipo, "Dato inválido.")

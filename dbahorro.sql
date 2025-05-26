@@ -155,7 +155,7 @@ VALUES
 (3, 'Patricia Torres', '9611783526', 'Calle de la Luna No. 15', 'Asistente de Ventas', '2023-03-01');
 
 -- Médicos
-INTERT INTO medicos (id_medico, nombre, especialidad, telefono)
+INSERT INTO medicos (id_medico, nombre, especialidad, telefono)
 VALUES
 (1, 'Dr. Alberto Ruiz', 'Pediatra', '9611783530'),
 (2, 'Dra. Sofía Morales', 'Dermatología', '9611783531'),

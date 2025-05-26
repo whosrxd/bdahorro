@@ -6,6 +6,8 @@ from empleados import empleados_app
 from medicos import medicos_app
 from proveedores import proveedores_app
 from unidades import unidades_app
+from medicamentos import medicamentos_app
+from ventas import ventas_app
 
 def interfaz():
     def seleccionar_boton(indice):
@@ -63,7 +65,10 @@ def interfaz():
         ("Empleados", lambda: empleados_app(contenido)),
         ("Médicos", lambda: medicos_app(contenido)),
         ("Proveedores", lambda: proveedores_app(contenido)),
-        ("Unidades", lambda: unidades_app(contenido))  
+        ("Unidades", lambda: unidades_app(contenido)),
+        ("Medicamentos", lambda: medicamentos_app(contenido)),
+        ("Ventas", lambda: ventas_app(contenido)),
+        ("Salir", ventana.quit)
     ]
 
     botones_frame = Frame(sidebar_contenido, bg="#FF3131")
