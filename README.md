@@ -2,14 +2,7 @@
 
 ### Este es un proyecto para la manipulación directa de una base de datos a través de una interfaz. Todo esto con conexión a **MySQ y TKinter**.
 
-## 1. Funcionalidades **CRUD** (Create, Read, Update, Delete) para las tablas:
-### `categorias`
-### `clientes`
-### `empleados`
-### `medicos`
-### `proveedores`
-### `unidades`
-
+## 1. Funcionalidades **CRUD** (Create, Read, Update, Delete) para las tablas
 ## 2. Características. 
 ###     2.1	Menú Principal de Configuración:
 ###	    Al iniciar la aplicación, se muestra un menú principal donde el administrador debe ingresar una contraseña para acceder a las configuraciones del sistema.
@@ -17,10 +10,17 @@
 ###	    •	Desde el menú principal, se puede acceder a cada uno de los CRUD de la base de datos:
 ###	    •	Categorías
 ###	    •	Clientes
+###	    •	Compras
+###	    •	Consultas
+###	    •	Detalle Compras
+###	    •	Detalle Recetas
+###	    •	Detalle Consultas
 ###	    •	Empleados
 ###	    •	Médicos
 ###	    •	Proveedores
+###	    •	Receta
 ###	    •	Unidades
+###	    •	Ventas
 ###	    2.3	Seguridad y Control de Acceso:
 ###	    •	Solo usuarios con permisos de administrador pueden acceder a la configuración de la base de datos,  garantizando seguridad en la gestión de datos.
 ###	    2.4	Interfaz Amigable:
