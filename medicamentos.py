@@ -289,8 +289,7 @@ def medicamentos_app(contenido):
             fecha_sql = datetime.strptime(fec, "%d/%m/%Y").strftime("%Y-%m-%d")
             
             try:
-                cursor.execute("INSERT INTO medicamentos (codigo, nombre, precio, costo, existencias, fecha_caducidad, id_categoria, id_proveedor, id_unidad) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                               (cod, nom, pre, cos, exi, fecha_sql, idc, idp, idu))
+                cursor.execute("INSERT INTO medicamentos (codigo, nombre, precio, costo, existencias, fecha_caducidad, id_categoria, id_proveedor, id_unidad) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (cod, nom, pre, cos, exi, fecha_sql, idc, idp, idu))
                 conn.commit()
                 refrescar()
                 messagebox.showinfo("Éxito", "Medicamento agregado correctamente")
@@ -345,7 +344,7 @@ def medicamentos_app(contenido):
         if not sel:
             messagebox.showwarning("Selección", "Selecciona primero una fila.")
             return
-        
+
         # Obtener valores de la fila seleccionada
         codigo, nombre, precio, costo, existencias, fecha_caducidad, id_categoria, id_proveedor, id_unidad = tbl.item(sel[0], "values")
         

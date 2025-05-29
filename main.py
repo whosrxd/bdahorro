@@ -8,6 +8,12 @@ from proveedores import proveedores_app
 from unidades import unidades_app
 from medicamentos import medicamentos_app
 from ventas import ventas_app
+from compras import compras_app
+from consultas import consultas_app
+from recetas import recetas_app
+from detalle_recetas import detalle_recetas_app
+from detalle_compras import detalle_compras_app
+from detalle_ventas import detalle_ventas_app
 
 def interfaz():
     def seleccionar_boton(indice):
@@ -46,7 +52,7 @@ def interfaz():
     contenido.grid(row=0, column=1, sticky="nsew")
 
     sidebar_contenido = Frame(sidebar, bg="#FF3131")
-    sidebar_contenido.pack(pady=80, fill="x")
+    sidebar_contenido.pack(pady=65, fill="x")
 
     imagen_ruta = "assets/ahorro.png"
     imagen = Image.open(imagen_ruta).resize((150, 150))
@@ -62,11 +68,17 @@ def interfaz():
     botones_texto = [
         ("Categorías", lambda: categorias_app(contenido)),
         ("Clientes", lambda: clientes_app(contenido)),
+        ("Compras", lambda: compras_app(contenido)),
+        ("Consultas", lambda: consultas_app(contenido)),
+        ("Detalle Compras", lambda: detalle_compras_app(contenido)),
+        ("Detalle Recetas", lambda: detalle_recetas_app(contenido)),
+        ("Detalle Ventas", lambda: detalle_ventas_app(contenido)),
         ("Empleados", lambda: empleados_app(contenido)),
+        ("Medicamentos", lambda: medicamentos_app(contenido)),
         ("Médicos", lambda: medicos_app(contenido)),
         ("Proveedores", lambda: proveedores_app(contenido)),
+        ("Recetas", lambda: recetas_app(contenido)),
         ("Unidades", lambda: unidades_app(contenido)),
-        ("Medicamentos", lambda: medicamentos_app(contenido)),
         ("Ventas", lambda: ventas_app(contenido)),
         ("Salir", ventana.quit)
     ]

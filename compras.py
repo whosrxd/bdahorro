@@ -1,11 +1,11 @@
 from tkinter import Frame, Label, Button, NW, BOTH, messagebox, Entry
 from tkinter.ttk import Treeview, Style
 from tkinter import ttk
+from datetime import datetime
 import conexion
 import validaciones
-from datetime import datetime
 
-def ventas_app(contenido):
+def compras_app(contenido):
     # — Conexión a BD —
     conn = conexion.conectar()
     cursor = conn.cursor()
@@ -13,9 +13,9 @@ def ventas_app(contenido):
     # Limpiar el frame
     for widget in contenido.winfo_children():
         widget.destroy()
-    
+
     # CRUD
-    titulo = Label(contenido, text="Ventas", font=("Arial", 70, "bold"), bg="#FFFFFF", fg="#000000")
+    titulo = Label(contenido, text="Compras", font=("Arial", 70, "bold"), bg="#FFFFFF", fg="#000000")
     titulo.pack(pady=(40, 20))
 
     # Función para agregar placeholder
@@ -61,8 +61,8 @@ def ventas_app(contenido):
             tbl.reattach(it, '', 'end')
         entry_busq.delete(0, "end")
         agregar_placeholder(entry_busq, "Buscar")
-
-    # Frame de búsqueda y botones
+        
+    # Frame de búsqueda y botones    
     frm_botones_buscar = Frame(contenido, bg="#FFFFFF")
     frm_botones_buscar.pack(pady=10, fill="x", padx=80)
 
@@ -110,21 +110,6 @@ def ventas_app(contenido):
         relief="flat",
     )
     btn_eliminar.pack(side="left", padx=5)
-    
-    btn_pagar = Button(
-        frm_botones_buscar,
-        text="Pagar",
-        bg="#5D85AC",
-        fg="#5D85AC",
-        activebackground="#5D85AC",
-        activeforeground="white",
-        highlightbackground="white",
-        highlightcolor="white",
-        highlightthickness=2,
-        bd=0,
-        relief="flat",
-    )
-    btn_pagar.pack(side="left", padx=5)
 
     entry_busq = Entry(
         frm_botones_buscar, 
@@ -160,37 +145,35 @@ def ventas_app(contenido):
                     font=("Arial", 12, "bold"),
                     background="#f0f0f0",
                     foreground="black")
-    
+
     style.map('Treeview',
             background=[('selected', '#3874f2')],
             foreground=[('selected', 'white')])
 
-    tbl = Treeview(frm_tabla, columns=("id_venta", "fecha", "importe", "id_cliente", "id_empleado"), show="headings")
-    tbl.heading("id_venta", text="ID Venta")
+    tbl = Treeview(frm_tabla, columns=("id_compra", "id_proveedor", "fecha", "importe"), show="headings")
+    tbl.heading("id_compra", text="ID Compras")
+    tbl.heading("id_proveedor", text="ID Proveedor")
     tbl.heading("fecha", text="Fecha")
     tbl.heading("importe", text="Importe")
-    tbl.heading("id_cliente", text="ID Cliente")
-    tbl.heading("id_empleado", text="ID Empleado")
-    tbl.column("id_venta", width=100, anchor="center")
-    tbl.column("fecha", width=150, anchor="center")
-    tbl.column("importe", width=100, anchor="center")
-    tbl.column("id_cliente", width=100, anchor="center")
-    tbl.column("id_empleado", width=100, anchor="center")
+    tbl.column("id_compra", width=90, anchor="center")
+    tbl.column("id_proveedor", width=90, anchor="center")
+    tbl.column("fecha", width=180, anchor="center")
+    tbl.column("importe", width=90, anchor="center")
     tbl.pack(fill=BOTH, expand=True)
     
     def refrescar():
         nonlocal items
         for row in tbl.get_children():
             tbl.delete(row)
-        cursor.execute("SELECT id_venta, fecha, importe, id_cliente, id_empleado FROM ventas")
+        cursor.execute("SELECT id_compra, id_proveedor, fecha, importe FROM compras")
         for r in cursor.fetchall():
             tbl.insert("", "end", values=r)
         items = tbl.get_children()
         
     refrescar()
     
-    def validar_campos(idv, fec, imp, idc, ide):
-        if not validaciones.validar_id(idv):
+    def validar_campos(idc, fec, imp):
+        if not validaciones.validar_id(idc):
             messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
             return False
         if not validaciones.validar_fecha(fec):
@@ -198,12 +181,6 @@ def ventas_app(contenido):
             return False
         if not validaciones.validar_importe(imp):
             messagebox.showerror("Error", validaciones.mostrar_mensaje_error("importe"))
-            return False
-        if not validaciones.validar_id(idc):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
-            return False   
-        if not validaciones.validar_id(ide):
-            messagebox.showerror("Error", validaciones.mostrar_mensaje_error("id"))
             return False
         return True
 
@@ -214,56 +191,49 @@ def ventas_app(contenido):
             return cursor.fetchall()  # Lista de tuplas: [(1, "Nombre1"), (2, "Nombre2"), ...]
         
         # Obtener los datos para combobox
-        clientes = obtener_datos("clientes", "id_cliente", "nombre")
-        empleados = obtener_datos("empleados", "id_empleado", "nombre")
+        proveedores = obtener_datos("proveedores", "id_proveedor", "nombre")
         
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=350)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=300)
 
-        Label(modal_frame, text="Agregar Venta", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=10)
-
+        Label(modal_frame, text="Agregar Compra", font=("Arial", 20), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        
         # Contenedor con grid para organizar los entrys
         form_frame = Frame(modal_frame, bg="#FFFFFF")
         form_frame.pack(pady=10)
-
-        # Lado izquierdo
-        Label(form_frame, text="ID Venta", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        entry_id = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
-        entry_id.grid(row=1, column=0, padx=10, pady=5)
-        entry_id.focus()
-
-        Label(form_frame, text="Fecha", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        entry_fecha = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
-        entry_fecha.grid(row=3, column=0, padx=10, pady=5)
-
-        Label(form_frame, text="Importe", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-        entry_importe = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
-        entry_importe.grid(row=5, column=0, padx=10, pady=5)
-
-        # Lado derecho
-        Label(form_frame, text="Cliente", font=("Arial", 12), bg="#FFFFFF", fg="#000000").grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        combo_cliente = ttk.Combobox(form_frame, font=("Arial", 12), width=20, state="readonly")
-        combo_cliente['values'] = [f"{id} - {nombre}" for id, nombre in clientes]
-        combo_cliente.grid(row=1, column=1, padx=10, pady=5)
         
-        Label(form_frame, text="Empleado", font=("Arial", 12), bg="#FFFFFF", fg="#000000").grid(row=2, column=1, padx=10, pady=5, sticky="w")
-        combo_empleado = ttk.Combobox(form_frame, font=("Arial", 12), width=20, state="readonly")
-        combo_empleado['values'] = [f"{id} - {nombre}" for id, nombre in empleados]
-        combo_empleado.grid(row=3, column=1, padx=10, pady=5)
-
+        # Lado izquierdo
+        Label(form_frame, text="ID Compra", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=0, column=0, pady=5, padx=5, sticky="w")
+        entry_id = Entry(form_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_id.grid(row=1, column=0, pady=5, padx=5)
+        entry_id.focus()
+        
+        Label(form_frame, text="ID Proveedor", font=("Arial", 12), bg="#FFFFFF", fg="#000000").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        combo_id_proveedor = ttk.Combobox(form_frame, font=("Arial", 12), width=20, state="readonly")
+        combo_id_proveedor['values'] = [f"{id} - {nombre}" for id, nombre in proveedores]
+        combo_id_proveedor.grid(row=3, column=0, padx=10, pady=5)
+        
+        # Lado derecho        
+        Label(form_frame, text="Fecha", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=0, column=1, pady=5, padx=5, sticky="w")
+        entry_fecha = Entry(form_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_fecha.grid(row=1, column=1, pady=5, padx=5)
+        
+        Label(form_frame, text="Importe", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=2, column=1, pady=5, padx=5, sticky="w")
+        entry_importe = Entry(form_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
+        entry_importe.grid(row=3, column=1, pady=5, padx=5)
+        
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
         lbl_error.pack(pady=5)
 
         # Función para guardar
         def guardar():
-            idv = entry_id.get().strip()
+            idc = entry_id.get().strip()
+            idp = combo_id_proveedor.get().split(" - ")[0]
             fec = entry_fecha.get().strip()
             imp = entry_importe.get().strip()
-            idc = combo_cliente.get().split(" - ")[0]
-            ide = combo_empleado.get().split(" - ")[0]
-            
-            if not validar_campos(idv, fec, imp, idc, ide): 
+
+            if not validar_campos(idc, fec, imp): 
                 lbl_error.config(text="Error en los datos ingresados.")
                 return
             
@@ -271,10 +241,10 @@ def ventas_app(contenido):
             fecha_sql = datetime.strptime(fec, "%d/%m/%Y").strftime("%Y-%m-%d")
             
             try:
-                cursor.execute("INSERT INTO ventas (id_venta, fecha, importe, id_cliente, id_empleado) VALUES (%s, %s, %s, %s, %s)", (idv, fecha_sql, imp, idc, ide))
+                cursor.execute("INSERT INTO compras (id_compra, id_proveedor, fecha, importe) VALUES (%s, %s, %s, %s)", (idc, idp, fecha_sql, imp))
                 conn.commit()
                 refrescar()
-                messagebox.showinfo("Éxito", "Venta agregada correctamente")
+                messagebox.showinfo("Éxito", "Compra agregada correctamente")
                 modal_frame.destroy()
             except Exception as e:
                 lbl_error.config(text=f"Error: {str(e)}")
@@ -327,76 +297,70 @@ def ventas_app(contenido):
             messagebox.showwarning("Selección", "Selecciona primero una fila.")
             return
         
+        # Obtener valores de la fila seleccionada
+        id_compra, id_proveedor, fecha_compra, importe_compra = tbl.item(sel[0], "values")
+        
         # Obtener listas para los combobox
         def obtener_datos(tabla, id_col, nombre_col):
             cursor.execute(f"SELECT {id_col}, {nombre_col} FROM {tabla}")
             return cursor.fetchall()  # Lista de tuplas: [(1, "Nombre1"), (2, "Nombre2"), ...]
         
         # Obtener los datos para combobox
-        clientes = obtener_datos("clientes", "id_cliente", "nombre")
-        empleados = obtener_datos("empleados", "id_empleado", "nombre")
-        
-        # Obtener valores de la fila seleccionada
-        id_venta, fecha, importe, id_cliente, id_empleado = tbl.item(sel[0], "values")
+        proveedores = obtener_datos("proveedores", "id_proveedor", "nombre")
 
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
-        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=400, height=350)
+        modal_frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=300)
 
-        Label(modal_frame, text="Modificar Venta", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
-
-        # Frame interno con grid
-        grid_frame = Frame(modal_frame, bg="#FFFFFF")
-        grid_frame.pack(pady=5)
-
+        Label(modal_frame, text="Modificar Compra", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        
+        # Contenedor con grid para organizar los entrys
+        form_frame = Frame(modal_frame, bg="#FFFFFF")
+        form_frame.pack(pady=10)
+        
         # Lado izquierdo
-        Label(grid_frame, text="ID Venta", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        entry_id = Entry(grid_frame, font=("Arial", 12), width=20, fg="#FFFFFF", bg="#FFFFFF")
-        entry_id.grid(row=1, column=0, padx=10, pady=5)
-        entry_id.insert(0, id_venta)
-        entry_id.config(state='readonly')
-
-        Label(grid_frame, text="Fecha", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        entry_fecha = Entry(grid_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_fecha.grid(row=3, column=0, padx=10, pady=5)
-        entry_fecha.insert(0, fecha)
-
-        Label(grid_frame, text="Importe", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-        entry_importe = Entry(grid_frame, font=("Arial", 12), width=20, fg="#000000", bg="#FFFFFF")
-        entry_importe.grid(row=5, column=0, padx=10, pady=5)
-        entry_importe.insert(0, importe)
-
+        Label(form_frame, text="ID Compra", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_id_compra = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#FFFFFF")
+        entry_id_compra.grid(row=1, column=0, padx=10, pady=5)
+        entry_id_compra.focus()
+        entry_id_compra.insert(0, id_compra)
+        entry_id_compra.config(state='readonly')
+        
+        Label(form_frame, text="ID Proveedor", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        combo_id_proveedor = ttk.Combobox(form_frame, font=("Arial", 12), width=20, state="readonly")
+        combo_id_proveedor['values'] = [f"{id} - {nombre}" for id, nombre in proveedores]
+        combo_id_proveedor.grid(row=3, column=0, padx=10, pady=5)
+        
         # Lado derecho
-        Label(grid_frame, text="ID Cliente", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        combo_clientes = ttk.Combobox(grid_frame, font=("Arial", 12), width=20, state="readonly")
-        combo_clientes['values'] = [f"{id} - {nombre}" for id, nombre in clientes]
-        combo_clientes.grid(row=1, column=1, padx=10, pady=5)
+        Label(form_frame, text="Fecha", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        entry_fecha = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_fecha.grid(row=1, column=1, padx=10, pady=5)
+        entry_fecha.insert(0, fecha_compra)
 
-        Label(grid_frame, text="ID Empleado", font=("Arial", 12), fg="#000000", bg="#FFFFFF").grid(row=2, column=1, padx=10, pady=5, sticky="w")
-        combo_empleados = ttk.Combobox(grid_frame, font=("Arial", 12), width=20, state="readonly")
-        combo_empleados['values'] = [f"{id} - {nombre}" for id, nombre in empleados]
-        combo_empleados.grid(row=3, column=1, padx=10, pady=5)
-
+        Label(form_frame, text="Importe", font=("Arial", 12), bg="#FFFFFF", fg = "#000000").grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        entry_importe = Entry(form_frame, font=("Arial", 12), width=20, bg="#FFFFFF", fg = "#000000")
+        entry_importe.grid(row=3, column=1, padx=10, pady=5)
+        entry_importe.insert(0, importe_compra)
+        
         lbl_error = Label(modal_frame, text="", fg="red", font=("Arial", 10), bg="#FFFFFF")
-        lbl_error.pack(pady=10)
+        lbl_error.pack(pady=5)
 
         # Función para guardar los cambios
         def guardar_cambios():
-            nuevo_id = entry_id.get().strip()
-            nuevo_importe = entry_importe.get().strip()
+            nuevo_id_compra = entry_id_compra.get().strip()
+            nuevo_id_proveedor = combo_id_proveedor.get().split(" - ")[0]
             nueva_fecha = entry_fecha.get().strip()
-            nuevo_id_cliente = combo_clientes.get().split(" - ")[0]
-            nuevo_id_empleado = combo_empleados.get().split(" - ")[0]
+            nuevo_importe = entry_importe.get().strip()
             
             try:
                 cursor.execute(
-                    "UPDATE ventas SET id_venta=%s, importe=%s, fecha=%s, id_cliente=%s, id_empleado=%s WHERE id_venta=%s",
-                    (nuevo_id, nuevo_importe, nueva_fecha, nuevo_id_cliente, nuevo_id_empleado, nuevo_id)
+                    "UPDATE compras SET id_proveedor=%s, fecha=%s, importe=%s WHERE id_compra=%s",
+                    (nuevo_id_proveedor, nueva_fecha, nuevo_importe, nuevo_id_compra)
                 )
                 conn.commit()
                 refrescar()
                 modal_frame.destroy()
-                messagebox.showinfo("Éxito", "Venta modificada correctamente")
+                messagebox.showinfo("Éxito", "Compra modificada correctamente")
             except Exception as e:
                 lbl_error.config(text=f"Error: {str(e)}")
 
@@ -448,7 +412,7 @@ def ventas_app(contenido):
         if not sel:
             messagebox.showwarning("Selección", "Selecciona primero una fila.")
             return
-        idv = tbl.item(sel[0], "values")[0]
+        idc = tbl.item(sel[0], "values")[0]
 
         # Crear un frame modal (capa encima)
         modal_frame = Frame(contenido, bg="#FFFFFF", bd=2, relief="ridge")
@@ -458,12 +422,12 @@ def ventas_app(contenido):
         inner_frame = Frame(modal_frame, bg="#FFFFFF")
         inner_frame.pack(expand=True)
 
-        Label(inner_frame, text="Eliminar Venta", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
-        Label(inner_frame, text=f"¿Deseas eliminar Venta {idv}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
+        Label(inner_frame, text="Eliminar Compra", font=("Arial", 25), fg="#000000", bg="#FFFFFF").pack(pady=10)
+        Label(inner_frame, text=f"¿Deseas eliminar Compra {idc}?", font=("Arial", 12), fg="#000000", bg="#FFFFFF").pack(pady=5)
 
         # Función que realmente elimina el registro
         def confirmar_eliminacion():
-            cursor.execute("DELETE FROM ventas WHERE id_venta=%s", (idv,))
+            cursor.execute("DELETE FROM compras WHERE id_compra=%s", (idc,))
             conn.commit()
             refrescar()
             modal_frame.destroy()  # Cierra el modal después de eliminar

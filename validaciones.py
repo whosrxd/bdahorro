@@ -51,6 +51,15 @@ def validar_existencias(existencias):
 def validar_importe(importe):
     return re.fullmatch(r"^\d+(\.\d{1,2})?$", importe) is not None
 
+def validar_motivo(motivo):
+    return bool(motivo.strip())
+
+def validar_cantidad(cantidad):
+    return cantidad.isdigit() and int(cantidad) > 0
+
+def validar_subtotal(subtotal):
+    return re.fullmatch(r"^\d+(\.\d{1,2})?$", subtotal) is not None
+
 def mostrar_mensaje_error(tipo):
     mensajes = {
         "nombre": "El campo Nombre solo debe contener letras.",
@@ -66,6 +75,9 @@ def mostrar_mensaje_error(tipo):
         "precio": "El campo Precio debe ser un número con hasta dos decimales.",
         "costo": "El campo Costo debe ser un número con hasta dos decimales.",
         "existencias": "El campo Existencias debe ser un número entero.",
-        "importe": "El campo Importe debe ser un número con hasta dos decimales"
+        "importe": "El campo Importe debe ser un número con hasta dos decimales.",
+        "motivo": "El campo Motivo debe estar lleno.",
+        "cantidad": "El campo Cantidad deber estar lleno.",
+        "subtotal": "El campo Subtotal debe ser un número con hasta dos decimales."
     }
     return mensajes.get(tipo, "Dato inválido.")
