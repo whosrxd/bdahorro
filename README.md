@@ -45,3 +45,5 @@
 ###    }
 ## 6. Ejecución de aplicación 
 ###     `python main.py`
+## 7. Nota
+###   Este programa está adaptado para su funcionamiento en `MacOS Sequoia 15.4.1`, esto debido a que la interfaz cambia mucho con `Windows 10 / Windows 11`. 
