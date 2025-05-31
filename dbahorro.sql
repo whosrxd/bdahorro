@@ -1,130 +1,131 @@
-CREATE DATABASE dbahorro;
-USE dbahorro;
+CREATE DATABASE bdprueba;
+USE bdprueba;
 
 CREATE TABLE categorias (
-    id_categoria INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
+id_categoria INT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE unidades (
-    id_unidad INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
+id_unidad INT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE proveedores (
-    id_proveedor INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    telefono CHAR(10),
-    contacto VARCHAR(100)
+id_proveedor INT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL,
+telefono CHAR(10),
+contacto VARCHAR(100)
 );
 
 CREATE TABLE clientes (
-    telefono CHAR(10) PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    id_cliente INT UNIQUE,
-    direccion VARCHAR(100),
-    correo VARCHAR(100)
+id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+nombre VARCHAR(50) NOT NULL,
+direccion VARCHAR(100),
+correo VARCHAR(100),
+telefono CHAR(10) UNIQUE
 );
 
 CREATE TABLE medicos (
-    id_medico INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    especialidad VARCHAR(100),
-    telefono CHAR(10)
+id_medico INT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL,
+especialidad VARCHAR(100),
+telefono CHAR(10)
 );
 
 CREATE TABLE recetas (
-    id_receta INT PRIMARY KEY,
-    telefono_cliente CHAR(10) NOT NULL,
-    id_medico INT NOT NULL,
-    fecha DATE NOT NULL,
-    FOREIGN KEY (telefono_cliente) REFERENCES clientes(telefono),
-    FOREIGN KEY (id_medico) REFERENCES medicos(id_medico)
+id_receta INT PRIMARY KEY,
+id_cliente INT NOT NULL,
+id_medico INT NOT NULL,
+fecha DATE NOT NULL,
+FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+FOREIGN KEY (id_medico) REFERENCES medicos(id_medico)
 );
 
 CREATE TABLE empleados (
-    id_empleado INT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    telefono CHAR(10),
-    direccion VARCHAR(100),
-    puesto VARCHAR(50),
-    fecha_contratacion DATE
+id_empleado INT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL,
+telefono CHAR(10),
+direccion VARCHAR(100),
+puesto VARCHAR(50),
+fecha_contratacion DATE
 );
 
 CREATE TABLE medicamentos (
-    codigo CHAR(13) PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    precio DECIMAL(10,2) NOT NULL,
-    costo DECIMAL(10,2) NOT NULL,
-    existencias INT NOT NULL,
-    id_categoria INT,
-    id_proveedor INT,
-    id_unidad INT,
-    fecha_caducidad DATE,
-    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
-    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
-    FOREIGN KEY (id_unidad) REFERENCES unidades(id_unidad)
+codigo CHAR(13) PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL,
+precio DECIMAL(10,2) NOT NULL,
+costo DECIMAL(10,2) NOT NULL,
+existencias INT NOT NULL,
+id_categoria INT,
+id_proveedor INT,
+id_unidad INT,
+fecha_caducidad DATE,
+FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
+FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
+FOREIGN KEY (id_unidad) REFERENCES unidades(id_unidad)
 );
 
 CREATE TABLE detalle_recetas (
-    id_detalle_receta INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_receta INT,
-    codigo_medicamento CHAR(13),
-    cantidad INT NOT NULL,
-    FOREIGN KEY (id_receta) REFERENCES recetas(id_receta),
-    FOREIGN KEY (codigo_medicamento) REFERENCES medicamentos(codigo)
+id_detalle_receta INTEGER PRIMARY KEY AUTO_INCREMENT,
+id_receta INT,
+codigo_medicamento CHAR(13),
+cantidad INT NOT NULL,
+FOREIGN KEY (id_receta) REFERENCES recetas(id_receta),
+FOREIGN KEY (codigo_medicamento) REFERENCES medicamentos(codigo)
 );
 
 CREATE TABLE compras (
-    id_compra INT PRIMARY KEY AUTO_INCREMENT,
-    id_proveedor INT NOT NULL,
-    fecha DATE NOT NULL, 
-    importe DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
+id_compra INT PRIMARY KEY AUTO_INCREMENT,
+id_proveedor INT NOT NULL,
+fecha DATE NOT NULL, 
+importe DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
 );
 
 CREATE TABLE detalle_compras (
-    id_compra INT,
-    codigo CHAR(13),
-    cantidad INT NOT NULL,
-    PRIMARY KEY (id_compra, codigo),
-    FOREIGN KEY (id_compra) REFERENCES compras(id_compra),
-    FOREIGN KEY (codigo) REFERENCES medicamentos(codigo)
+id_detalle_compra INT PRIMARY KEY AUTO_INCREMENT,
+id_compra INT,
+codigo CHAR(13),
+cantidad INT NOT NULL,
+FOREIGN KEY (id_compra) REFERENCES compras(id_compra),
+FOREIGN KEY (codigo) REFERENCES medicamentos(codigo)
 );
 
 CREATE TABLE ventas (
-    id_venta INT PRIMARY KEY AUTO_INCREMENT,
-    fecha DATE NOT NULL,
-    importe DECIMAL(10,2) NOT NULL,
-    telefono CHAR(10) NOT NULL,
-    id_empleado INT NOT NULL,
-    FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
-    FOREIGN KEY (telefono) REFERENCES clientes(telefono)
+id_venta INT PRIMARY KEY AUTO_INCREMENT,
+fecha DATE NOT NULL,
+importe DECIMAL(10,2) NOT NULL,
+id_cliente INT NOT NULL,
+id_empleado INT NOT NULL,
+FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
+FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
 );
 
 CREATE TABLE detalle_ventas (
-    id_venta INT,
-    codigo CHAR(13),
-    cantidad INT NOT NULL,
-    id_receta INT,
-    subtotal DECIMAL(10,2) NOT NULL,
-    PRIMARY KEY (id_venta, codigo),
-    FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
-    FOREIGN KEY (codigo) REFERENCES medicamentos(codigo),
-    FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
+id_detalle_venta INT PRIMARY KEY AUTO_INCREMENT,
+id_venta INT,
+codigo CHAR(13),
+cantidad INT NOT NULL,
+id_receta INT,
+subtotal DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
+FOREIGN KEY (codigo) REFERENCES medicamentos(codigo),
+FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 );
 
 CREATE TABLE consultas (
-    id_consulta INT PRIMARY KEY AUTO_INCREMENT,
-    telefono_cliente CHAR(10) NOT NULL,
-    id_empleado INT NOT NULL,
-    id_receta INT NOT NULL,
-    fecha DATE NOT NULL,
-    motivo VARCHAR(200),
-    FOREIGN KEY (telefono_cliente) REFERENCES clientes(telefono),
-    FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
-    FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
+id_consulta INT PRIMARY KEY AUTO_INCREMENT,
+id_cliente INT NOT NULL,
+id_empleado INT NOT NULL,
+id_receta INT NOT NULL,
+fecha DATE NOT NULL,
+motivo VARCHAR(200),
+FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado),
+FOREIGN KEY (id_receta) REFERENCES recetas(id_receta)
 );
+
 
 -- Inserción de datos de ejemplo
 
@@ -221,41 +222,23 @@ VALUES
 ('7701234567803', 'Crema Hidratante', 85.00, 45.00, 40, 3, 4, 3, '2026-01-10'),
 ('7701234567804', 'Proteína en Polvo', 150.00, 80.00, 25, 2, 5, 4, '2026-05-20');
 
-INSERT INTO ventas (fecha, importe, id_cliente, id_empleado)
+INSERT INTO ventas (id_venta, fecha, importe, id_cliente, id_empleado)
 VALUES
-('2025-05-20', 250.50, 1, 2),
-('2025-05-21', 130.00, 2, 3),
-('2025-05-22', 340.75, 3, 1),
-('2025-05-23', 80.90, 4, 4),
-('2025-05-24', 120.00, 5, 5),
-('2025-05-25', 60.00, 6, 6),
-('2025-05-26', 275.35, 7, 7),
-('2025-05-27', 99.99, 8, 8),
-('2025-05-28', 45.00, 9, 9),
-('2025-05-29', 150.25, 10, 10),
-('2025-05-30', 200.00, 1, 1),
-('2025-05-31', 75.00, 2, 2),
-('2025-06-01', 90.50, 3, 3),
-('2025-06-02', 110.10, 4, 4),
-('2025-06-03', 320.00, 5, 5);
-
-IINSERT INTO detalles_venta (id_venta, codigo, cantidad, id_receta, subtotal)
-VALUES
-(1, '00034732', 2, 1, 99.98),
-(1, '7701234567890', 3, 2, 30.00),
-(1, '7701234567897', 1, 3, 5.00),
-(2, '000848313', 1, 1, 39.99),
-(2, '7701234567891', 2, 2, 24.00),
-(2, '7701234567893', 4, 3, 32.00),
-(3, '7701234567895', 1, 4, 40.00),
-(3, '7701234567896', 5, 5, 45.00),
-(3, '7701234567892', 2, 2, 36.00),
-(4, '7701234567899', 1, 3, 50.00),
-(4, '7701234567800', 2, 4, 30.00),
-(4, '7701234567894', 1, 1, 25.00),
-(5, '7701234567802', 3, 2, 75.00),
-(5, '7701234567804', 1, 3, 80.00),
-(5, '7701234567898', 2, 4, 140.00);
+(1, '2025-05-20', 250.50, 1, 2),
+(2, '2025-05-21', 130.00, 2, 3),
+(3, '2025-05-22', 340.75, 3, 1),
+(4, '2025-05-23', 80.90, 4, 4),
+(5, '2025-05-24', 120.00, 5, 5),
+(6, '2025-05-25', 60.00, 6, 6),
+(7, '2025-05-26', 275.35, 7, 7),
+(8, '2025-05-27', 99.99, 8, 8),
+(9, '2025-05-28', 45.00, 9, 9),
+(10, '2025-05-29', 150.25, 10, 10),
+(11, '2025-05-30', 200.00, 1, 1),
+(12, '2025-05-31', 75.00, 2, 2),
+(13, '2025-06-01', 90.50, 3, 3),
+(14, '2025-06-02', 110.10, 4, 4),
+(15, '2025-06-03', 320.00, 5, 5);
 
 INSERT INTO recetas (id_receta, id_cliente, id_medico, fecha)
 VALUES
@@ -281,8 +264,7 @@ VALUES
 (7, 6, 7, 7, '2025-05-13', 'Problemas hormonales'),
 (8, 7, 8, 8, '2025-05-14', 'Revisión ocular'),
 (9, 8, 9, 9, '2025-05-14', 'Dolor de espalda'),
-(10, 9, 10, 10, '2025-05-15', 'Ansiedad y estrés'),
-(11, 10, 1, 11, '2025-05-15', 'Chequeo anual');
+(10, 9, 10, 10, '2025-05-15', 'Ansiedad y estrés');
 
 INSERT INTO compras (id_proveedor, fecha, importe) VALUES
 (1, '2025-04-01', 3500.00),
@@ -302,8 +284,8 @@ INSERT INTO compras (id_proveedor, fecha, importe) VALUES
 (5, '2025-04-30', 3950.60);
 
 INSERT INTO detalle_compras (id_detalle_compra, id_compra, codigo, cantidad) VALUES
-(1, 1, '00034732', 10),
-(2, 1, '000848313', 5),
+(1, 1, '7701234567802', 10),
+(2, 1, '7701234567893', 5),
 (3, 2, '7701234567800', 20),
 (4, 2, '7701234567801', 15),
 (5, 3, '7701234567802', 12),
@@ -317,3 +299,21 @@ INSERT INTO detalle_compras (id_detalle_compra, id_compra, codigo, cantidad) VAL
 (13, 7, '7701234567895', 3),
 (14, 7, '7701234567896', 25),
 (15, 8, '7701234567897', 30);
+
+INSERT INTO detalle_ventas (id_detalle_venta, id_venta, codigo, cantidad, id_receta, subtotal)
+VALUES
+(1, 1, '7701234567894', 2, 1, 99.98),
+(2, 1, '7701234567890', 3, 2, 30.00),
+(3, 1, '7701234567897', 1, 3, 5.00),
+(4, 2, '7701234567898', 1, 1, 39.99),
+(5, 2, '7701234567891', 2, 2, 24.00),
+(6, 2, '7701234567893', 4, 3, 32.00),
+(7, 3, '7701234567895', 1, 4, 40.00),
+(8, 3, '7701234567896', 5, 5, 45.00),
+(9, 3, '7701234567892', 2, 2, 36.00),
+(10, 4, '7701234567899', 1, 3, 50.00),
+(11, 4, '7701234567800', 2, 4, 30.00),
+(12, 4, '7701234567894', 1, 1, 25.00),
+(13, 5, '7701234567802', 3, 2, 75.00),
+(14, 5, '7701234567804', 1, 3, 80.00),
+(15, 5, '7701234567898', 2, 4, 140.00);

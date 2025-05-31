@@ -47,3 +47,10 @@
 ###     `python main.py`
 ## 7. Nota
 ###   Este programa está adaptado para su funcionamiento en `MacOS Sequoia 15.4.1`, esto debido a que la interfaz cambia mucho con `Windows 10 / Windows 11`. 
+### ENTENDIENDO LA APLICACIÓN
+### 1. Para empezar se debe entender que la aplicación se rige de varias interfaces, todas contenidas en un solo archivo.
+### 2. Antes de ejecutar los archivos debes crear la base de datos, la cual se encuentra en `dbahorro.sql`
+### 3. En `main.py` podemos encontrar todos los archivos que enlazan a la aplicación (los cuales se mencionaron en `2.2 Gestión CRUD`).
+### 4. Para iniciar la aplicación se debe ejecutar el archivo `login.py` para entrar al login del admin y poder hacer cambios en la base de datos.
+### NOTAS FINALES
+## Para instalar los paquetes debemos acceder a `requirements.txt`, donde encontraremos `mysql-connector-python`. Cabe aclarar que se usan librerias como `tkinter`, `ttk` y `datetime`, pero no es necesario instalarlas debido a que Python ya incluye dichas librerias.
